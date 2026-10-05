@@ -43,3 +43,6 @@ next-env.d.ts
 # raw photo downloads & scratch (sources are listed in public/images/SOURCES.md)
 /_src/raw/
 /_src/*.png
+
+.vercel
+.env*
