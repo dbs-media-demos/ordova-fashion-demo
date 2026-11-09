@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { commerce } from "@/lib/commerce";
 import type { TrackStatus } from "@/lib/commerce/types";
-import { gsap, prefersReducedMotion } from "@/lib/gsap";
+import { gsap, loadGsap, prefersReducedMotion } from "@/lib/gsap";
 import { IconCheck, IconTruck } from "@/components/ui/Icons";
 
 export function TrackView() {
@@ -32,15 +32,18 @@ export function TrackView() {
   useEffect(() => {
     const el = list.current;
     if (!res || !el || prefersReducedMotion()) return;
-    const tl = gsap.timeline();
-    tl.fromTo(el.querySelector("[data-line]"), { scaleY: 0 }, { scaleY: 1, duration: 1.6, ease: "power2.inOut" }).fromTo(
-      el.querySelectorAll("li"),
-      { opacity: 0, x: -20 },
-      { opacity: 1, x: 0, stagger: 0.18, duration: 0.6, ease: "expo.out" },
-      0.1,
-    );
+    let tl: gsap.core.Timeline | undefined;
+    let dead = false;
+    void loadGsap().then(() => {
+      if (dead) return;
+      tl = gsap
+        .timeline()
+        .fromTo(el.querySelector("[data-line]"), { scaleY: 0 }, { scaleY: 1, duration: 1.6, ease: "power2.inOut" })
+        .fromTo(el.querySelectorAll("li"), { opacity: 0, x: -20 }, { opacity: 1, x: 0, stagger: 0.18, duration: 0.6, ease: "expo.out" }, 0.1);
+    });
     return () => {
-      tl.kill();
+      dead = true;
+      tl?.kill();
     };
   }, [res]);
 

@@ -37,7 +37,7 @@ export function LookbookTrack({ looks }: { looks: Look[] }) {
     const tr = track.current;
     if (!sec || !tr || prefersReducedMotion()) return;
     const mm = gsap.matchMedia();
-    mm.add("(min-width: 1024px)", () => {
+    mm.add("(min-width: 1024px) and (hover: hover) and (pointer: fine)", () => {
       const dist = () => tr.scrollWidth - window.innerWidth;
       const setH = () => (sec.style.height = `${dist() + window.innerHeight}px`);
       setH();
@@ -61,7 +61,7 @@ export function LookbookTrack({ looks }: { looks: Look[] }) {
         sec.style.height = "";
       };
     });
-    mm.add("(max-width: 1023px)", () => {
+    mm.add("(max-width: 1023px), (hover: none), (pointer: coarse)", () => {
       tr.querySelectorAll<HTMLElement>("[data-img]").forEach((img) =>
         gsap.fromTo(img, { clipPath: "inset(10% 10% 10% 10%)" }, { clipPath: "inset(0% 0% 0% 0%)", ease: "none", scrollTrigger: { trigger: img, start: "top 95%", end: "top 40%", scrub: true } }),
       );
@@ -71,21 +71,21 @@ export function LookbookTrack({ looks }: { looks: Look[] }) {
 
   return (
     <section ref={root} className="relative bg-bone" aria-label="FW26 looks">
-      <div className="lg:sticky lg:top-0 lg:flex lg:h-[100svh] lg:items-center lg:overflow-hidden">
-        <div ref={track} className="flex flex-col gap-24 pb-24 lg:flex-row lg:items-center lg:gap-[8vw] lg:pb-0 lg:pl-[8vw] lg:pr-[12vw]">
+      <div className="deskl:sticky deskl:top-0 deskl:flex deskl:h-[100svh] deskl:items-center deskl:overflow-hidden">
+        <div ref={track} className="flex flex-col gap-24 pb-24 deskl:flex-row deskl:items-center deskl:gap-[8vw] deskl:pb-0 deskl:pl-[8vw] deskl:pr-[12vw]">
           {looks.map((l, i) => {
             const pieces = l.hotspots.map((h) => productBySlug.get(h.slug)).filter((p): p is Product => !!p);
             const total = pieces.reduce((a, p) => a + p.price, 0);
             return (
-              <article key={l.id} id={l.id} data-look className="relative scroll-mt-24 lg:flex lg:shrink-0 lg:items-end lg:gap-10" aria-labelledby={`${l.id}-t`}>
+              <article key={l.id} id={l.id} data-look className="relative scroll-mt-24 deskl:flex deskl:shrink-0 deskl:items-end deskl:gap-10" aria-labelledby={`${l.id}-t`}>
                 <span
                   data-cap
                   data-text={l.title}
                   aria-hidden="true"
-                  className="pointer-events-none absolute -top-6 left-0 z-0 whitespace-nowrap font-display text-[clamp(4rem,14vw,15rem)] font-extrabold uppercase leading-none tracking-[-0.05em] text-char/[0.07] before:content-[attr(data-text)] lg:-top-[12vh]"
+                  className="pointer-events-none absolute -top-6 left-0 z-0 whitespace-nowrap font-display text-[clamp(4rem,14vw,15rem)] font-extrabold uppercase leading-none tracking-[-0.05em] text-char/[0.07] before:content-[attr(data-text)] deskl:-top-[12vh]"
                 />
-                <div className="container-x relative z-[1] lg:px-0">
-                  <div data-img className="media relative aspect-[4/5] w-full overflow-hidden rounded-[2px] lg:h-[74vh] lg:w-[59.2vh]">
+                <div className="container-x relative z-[1] deskl:px-0">
+                  <div data-img className="media relative aspect-[4/5] w-full overflow-hidden rounded-[2px] deskl:h-[74vh] deskl:w-[59.2vh]">
                     <Image src={l.image} alt={l.alt} fill sizes="(min-width: 1024px) 45vw, 100vw" preload={i === 0} loading={i < 2 ? "eager" : "lazy"} className="object-cover" />
                     {l.hotspots.map((h) => {
                       const p = productBySlug.get(h.slug);
@@ -111,7 +111,7 @@ export function LookbookTrack({ looks }: { looks: Look[] }) {
                     })}
                   </div>
                 </div>
-                <div className="container-x relative z-[1] mt-6 lg:mt-0 lg:w-[22rem] lg:px-0 lg:pb-2">
+                <div className="container-x relative z-[1] mt-6 deskl:mt-0 deskl:w-[22rem] deskl:px-0 deskl:pb-2">
                   <p className="t-mono text-muted">
                     Look {l.n} · {l.place}
                   </p>

@@ -10,6 +10,7 @@ import { nav, site, agencyUrl } from "@/lib/site";
 import { hoursTable } from "@/lib/hours";
 import { gsap, useIdleGSAP, prefersReducedMotion } from "@/lib/gsap";
 import { IconArrow, IconCheck, IconInstagram } from "@/components/ui/Icons";
+import { cv } from "@/lib/cv";
 
 export function Footer() {
   const word = useRef<HTMLDivElement>(null);
@@ -42,7 +43,7 @@ export function Footer() {
   }
 
   return (
-    <footer className="theme-char relative overflow-hidden pt-20 md:pt-28">
+    <footer {...cv("footer")} className="theme-char relative overflow-hidden pt-20 md:pt-28">
       <div className="container-x grid gap-14 md:grid-cols-12">
         <div className="md:col-span-5">
           <p className="t-mono text-mist">The letter</p>

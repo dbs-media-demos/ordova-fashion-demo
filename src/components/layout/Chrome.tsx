@@ -2,35 +2,46 @@
 
 import { useEffect, useRef, useState, ViewTransition, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import Lenis from "lenis";
 import clsx from "clsx";
-import { gsap, ScrollTrigger, prefersReducedMotion, isCoarse } from "@/lib/gsap";
+import { gsap, ScrollTrigger, loadGsap, onIdle, prefersReducedMotion, isCoarse, isPhone } from "@/lib/gsap";
 import { agencyUrl } from "@/lib/site";
 import { openStatus } from "@/lib/hours";
-import { useUi, useMounted } from "@/lib/store";
+import { useUi } from "@/lib/store";
 
-/** Lenis smooth scrolling driven by GSAP's ticker. Off on touch and for reduced motion. */
+/**
+ * Lenis smooth scrolling driven by GSAP's ticker. Desktop only: off on touch and for reduced motion,
+ * and both libraries are imported inside the effect, so phones never download Lenis.
+ */
 export function SmoothScroll() {
   const pathname = usePathname();
 
   useEffect(() => {
     if (prefersReducedMotion() || isCoarse()) return;
-    const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, anchors: { offset: -90 } });
-    window.__lenis = lenis;
-    lenis.on("scroll", ScrollTrigger.update);
-    const tick = (time: number) => lenis.raf(time * 1000);
-    gsap.ticker.add(tick);
-    gsap.ticker.lagSmoothing(0);
+    let dead = false;
+    let stop = () => {};
+    void Promise.all([import("lenis"), loadGsap()]).then(([{ default: Lenis }]) => {
+      if (dead) return;
+      const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1, anchors: { offset: -90 } });
+      window.__lenis = lenis;
+      lenis.on("scroll", ScrollTrigger.update);
+      const tick = (time: number) => lenis.raf(time * 1000);
+      gsap.ticker.add(tick);
+      gsap.ticker.lagSmoothing(0);
+      stop = () => {
+        gsap.ticker.remove(tick);
+        lenis.destroy();
+        delete window.__lenis;
+      };
+    });
     return () => {
-      gsap.ticker.remove(tick);
-      lenis.destroy();
-      delete window.__lenis;
+      dead = true;
+      stop();
     };
   }, []);
 
   useEffect(() => {
     window.__lenis?.resize();
-    const id = window.setTimeout(() => ScrollTrigger.refresh(), 400);
+    const id = window.setTimeout(() => ScrollTrigger?.refresh(), 400);
     return () => window.clearTimeout(id);
   }, [pathname]);
 
@@ -60,11 +71,15 @@ export function Cursor() {
   useEffect(() => {
     if (isCoarse() || prefersReducedMotion()) return;
     const el = dot.current!;
-    const xTo = gsap.quickTo(el, "x", { duration: 0.35, ease: "power3.out" });
-    const yTo = gsap.quickTo(el, "y", { duration: 0.35, ease: "power3.out" });
+    let xTo: ((v: number) => void) | undefined;
+    let yTo: ((v: number) => void) | undefined;
+    void loadGsap().then(() => {
+      xTo = gsap.quickTo(el, "x", { duration: 0.35, ease: "power3.out" });
+      yTo = gsap.quickTo(el, "y", { duration: 0.35, ease: "power3.out" });
+    });
     let last: string | null = null;
     const move = (e: PointerEvent) => {
-      if (e.pointerType !== "mouse") return;
+      if (e.pointerType !== "mouse" || !xTo || !yTo) return;
       setActive(true);
       xTo(e.clientX);
       yTo(e.clientY);
@@ -106,6 +121,44 @@ export function Cursor() {
   );
 }
 
+/**
+ * Phones: one short fade-and-rise per section, once, for sections that start below the fold
+ * (set after load, so the server HTML never hides anything). CSS in the phone block of globals.css.
+ */
+export function PhoneRise() {
+  const pathname = usePathname();
+  useEffect(() => {
+    if (!isPhone() || prefersReducedMotion() || !("IntersectionObserver" in window)) return;
+    let io: IntersectionObserver | undefined;
+    const start = () => {
+      const els = Array.from(document.querySelectorAll<HTMLElement>("main section")).filter(
+        (el) => !el.parentElement?.closest("main section") && el.getBoundingClientRect().top > window.innerHeight,
+      );
+      io = new IntersectionObserver(
+        (entries) =>
+          entries.forEach((e) => {
+            if (!e.isIntersecting) return;
+            const el = e.target as HTMLElement;
+            el.dataset.rise = "in";
+            io?.unobserve(el);
+          }),
+        { rootMargin: "0px 0px -8% 0px" },
+      );
+      els.forEach((el) => {
+        el.dataset.rise = "wait";
+        io!.observe(el);
+      });
+    };
+    const cancel = onIdle(start, 1500);
+    return () => {
+      cancel();
+      io?.disconnect();
+      document.querySelectorAll<HTMLElement>("[data-rise]").forEach((el) => delete el.dataset.rise);
+    };
+  }, [pathname]);
+  return null;
+}
+
 /** Polite live region for cart announcements. */
 export function LiveRegion() {
   const { announce } = useUi();
@@ -134,15 +187,21 @@ export function DemoBadge() {
   );
 }
 
-/** Live "Open now · until 8 pm" pill (Dallas time). Client-only to avoid hydration drift. */
+/**
+ * Live "Open now · until 8 pm" pill (Dallas time). Client-only to avoid hydration drift, and
+ * worked out once the browser is idle (no time-zone formatting during hydration).
+ */
 export function OpenBadge({ className, dark }: { className?: string; dark?: boolean }) {
-  const mounted = useMounted();
-  const [, tick] = useState(0);
+  const [s, setS] = useState<ReturnType<typeof openStatus> | null>(null);
   useEffect(() => {
-    const id = window.setInterval(() => tick((n) => n + 1), 60_000);
-    return () => window.clearInterval(id);
+    const update = () => setS(openStatus());
+    const cancel = onIdle(update, 2000);
+    const id = window.setInterval(update, 60_000);
+    return () => {
+      cancel();
+      window.clearInterval(id);
+    };
   }, []);
-  const s = mounted ? openStatus() : null;
   return (
     <span className={clsx("t-mono inline-flex items-center gap-2 rounded-full border px-3 py-1.5", dark ? "border-line-lt" : "border-line", className)}>
       <span

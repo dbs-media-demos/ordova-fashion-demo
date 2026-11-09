@@ -11,7 +11,9 @@ import { gsap, prefersReducedMotion } from "@/lib/gsap";
 export function flyToBag(from: Element | null | undefined, delay = 0): Promise<void> {
   return new Promise((resolve) => {
     const target = document.querySelector<HTMLElement>("[data-bag-icon]");
-    if (!from || !target || prefersReducedMotion()) return resolve();
+    // GSAP not loaded yet (a phone tapping in its first seconds): skip the flight, the bag is already updated.
+    if (!gsap && !prefersReducedMotion()) ui.bump();
+    if (!from || !target || prefersReducedMotion() || !gsap) return resolve();
     const img = from instanceof HTMLImageElement ? from : from.querySelector("img");
     const r = from.getBoundingClientRect();
     const t = target.getBoundingClientRect();

@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef } from "react";
-import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
+import { useEffect, useRef } from "react";
+import { gsap, loadGsap, prefersReducedMotion } from "@/lib/gsap";
 
 /**
  * Success animation: the garment folds itself (sleeves in, hem up), drops
@@ -11,24 +11,32 @@ import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 export function FoldBox({ number }: { number: string }) {
   const svg = useRef<SVGSVGElement>(null);
 
-  useGSAP(
-    () => {
-      const q = gsap.utils.selector(svg);
-      const tl = gsap.timeline({ delay: 0.3, defaults: { ease: "power3.inOut" } });
-      tl.set(q("#garment"), { transformOrigin: "50% 50%" })
-        .fromTo(q("#garment"), { y: -18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power2.out" })
-        .to(q("#sleeve-l"), { scaleX: -1, svgOrigin: "122 96", duration: 0.55 }, "+=0.25")
-        .to(q("#sleeve-r"), { scaleX: -1, svgOrigin: "198 96", duration: 0.55 }, "<0.12")
-        .to(q("#hem"), { scaleY: -1, svgOrigin: "160 138", duration: 0.6 }, "+=0.05")
-        .to(q("#garment"), { y: 92, scale: 0.86, svgOrigin: "160 120", duration: 0.7, ease: "power2.in" }, "+=0.15")
-        .to(q("#tissue-l"), { rotate: 0, svgOrigin: "92 196", duration: 0.5 }, "-=0.05")
-        .to(q("#tissue-r"), { rotate: 0, svgOrigin: "228 196", duration: 0.5 }, "<0.08")
-        .fromTo(q("#lid"), { y: -150, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "back.out(1.2)" }, "+=0.05")
-        .fromTo(q("#sticker"), { scale: 2.6, rotate: -40, opacity: 0, svgOrigin: "212 196" }, { scale: 1, rotate: -10, opacity: 1, duration: 0.5, ease: "back.out(2)" }, "+=0.1");
-      if (prefersReducedMotion()) tl.progress(1);
-    },
-    { scope: svg },
-  );
+  useEffect(() => {
+    let ctx: gsap.Context | undefined;
+    let dead = false;
+    void loadGsap().then(() => {
+      if (dead || !svg.current) return;
+      ctx = gsap.context(() => {
+        const q = gsap.utils.selector(svg);
+        const tl = gsap.timeline({ delay: 0.3, defaults: { ease: "power3.inOut" } });
+        tl.set(q("#garment"), { transformOrigin: "50% 50%" })
+          .fromTo(q("#garment"), { y: -18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power2.out" })
+          .to(q("#sleeve-l"), { scaleX: -1, svgOrigin: "122 96", duration: 0.55 }, "+=0.25")
+          .to(q("#sleeve-r"), { scaleX: -1, svgOrigin: "198 96", duration: 0.55 }, "<0.12")
+          .to(q("#hem"), { scaleY: -1, svgOrigin: "160 138", duration: 0.6 }, "+=0.05")
+          .to(q("#garment"), { y: 92, scale: 0.86, svgOrigin: "160 120", duration: 0.7, ease: "power2.in" }, "+=0.15")
+          .to(q("#tissue-l"), { rotate: 0, svgOrigin: "92 196", duration: 0.5 }, "-=0.05")
+          .to(q("#tissue-r"), { rotate: 0, svgOrigin: "228 196", duration: 0.5 }, "<0.08")
+          .fromTo(q("#lid"), { y: -150, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "back.out(1.2)" }, "+=0.05")
+          .fromTo(q("#sticker"), { scale: 2.6, rotate: -40, opacity: 0, svgOrigin: "212 196" }, { scale: 1, rotate: -10, opacity: 1, duration: 0.5, ease: "back.out(2)" }, "+=0.1");
+        if (prefersReducedMotion()) tl.progress(1);
+      }, svg);
+    });
+    return () => {
+      dead = true;
+      ctx?.revert();
+    };
+  }, []);
 
   return (
     <svg ref={svg} viewBox="0 0 320 290" className="h-auto w-full max-w-[30rem]" role="img" aria-label={`Your order ${number}, folded and boxed`}>

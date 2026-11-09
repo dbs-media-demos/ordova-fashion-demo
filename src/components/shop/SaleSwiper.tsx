@@ -7,7 +7,7 @@ import clsx from "clsx";
 import type { Product } from "@/lib/commerce/types";
 import { discountPct, sizesInStock } from "@/content/helpers";
 import { money } from "@/lib/format";
-import { gsap, prefersReducedMotion } from "@/lib/gsap";
+import { gsap, isPhone, loadGsap, prefersReducedMotion } from "@/lib/gsap";
 import { markMorph } from "@/lib/morph";
 import { IconArrow } from "@/components/ui/Icons";
 
@@ -15,7 +15,8 @@ import { IconArrow } from "@/components/ui/Icons";
  * Signature 4a — the Archive Sale coverflow. A 3D card stack you can drag,
  * flick (with inertia), scroll sideways, or drive with arrow keys/buttons.
  * Transforms are written straight to the DOM each frame; React only tracks
- * the active index (for the counter and screen readers).
+ * the active index (for the counter and screen readers). Phones get a plain
+ * swipeable rail instead (CSS in the phone block of globals.css, no JS).
  */
 export function SaleSwiper({ products, tone = "dark", label = "The Archive Sale", priority }: { products: Product[]; tone?: "dark" | "light"; label?: string; priority?: boolean }) {
   const stage = useRef<HTMLDivElement>(null);
@@ -27,7 +28,7 @@ export function SaleSwiper({ products, tone = "dark", label = "The Archive Sale"
 
   const render = () => {
     const el = stage.current;
-    if (!el) return;
+    if (!el || !gsap) return;
     const w = el.clientWidth;
     const cw = cards.current[0]?.offsetWidth ?? 300;
     const spread = Math.min(cw * 0.62, w * 0.24);
@@ -51,24 +52,32 @@ export function SaleSwiper({ products, tone = "dark", label = "The Archive Sale"
   };
 
   const goTo = (target: number, duration = 0.9) => {
+    if (!gsap || isPhone()) return;
     const t = gsap.utils.clamp(0, n - 1, target);
     tween.current?.kill();
     tween.current = gsap.to(pos.current, { v: t, duration: prefersReducedMotion() ? 0 : duration, ease: "power3.out", onUpdate: render });
   };
 
   useEffect(() => {
-    const start = Math.min(2, Math.floor((n - 1) / 2));
-    pos.current.v = start;
-    render();
-    // gentle entrance: the deck fans out from the centre card
-    if (!prefersReducedMotion()) {
-      pos.current.v = start + 1.4;
-      goTo(start, 1.6);
-    }
-    const ro = new ResizeObserver(render);
-    if (stage.current) ro.observe(stage.current);
+    if (isPhone()) return;
+    let dead = false;
+    let ro: ResizeObserver | undefined;
+    void loadGsap().then(() => {
+      if (dead) return;
+      const start = Math.min(2, Math.floor((n - 1) / 2));
+      pos.current.v = start;
+      render();
+      // gentle entrance: the deck fans out from the centre card
+      if (!prefersReducedMotion()) {
+        pos.current.v = start + 1.4;
+        goTo(start, 1.6);
+      }
+      ro = new ResizeObserver(render);
+      if (stage.current) ro.observe(stage.current);
+    });
     return () => {
-      ro.disconnect();
+      dead = true;
+      ro?.disconnect();
       tween.current?.kill();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,7 +86,7 @@ export function SaleSwiper({ products, tone = "dark", label = "The Archive Sale"
   // Drag + inertia
   const drag = useRef({ on: false, x: 0, start: 0, last: 0, lastT: 0, vel: 0, moved: 0 });
   const onDown = (e: React.PointerEvent) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || !gsap || isPhone()) return;
     tween.current?.kill();
     const d = drag.current;
     d.on = true;
@@ -115,7 +124,7 @@ export function SaleSwiper({ products, tone = "dark", label = "The Archive Sale"
   // Horizontal wheel / trackpad
   useEffect(() => {
     const el = stage.current;
-    if (!el) return;
+    if (!el || isPhone()) return;
     let acc = 0;
     let t = 0;
     const onWheel = (e: WheelEvent) => {
@@ -141,7 +150,7 @@ export function SaleSwiper({ products, tone = "dark", label = "The Archive Sale"
       <div
         ref={stage}
         data-cursor="Drag"
-        className="relative h-[27rem] touch-pan-y select-none [perspective:1400px] sm:h-[31rem] md:h-[36rem]"
+        className="sale-stage relative h-[27rem] touch-pan-y select-none [perspective:1400px] sm:h-[31rem] md:h-[36rem]"
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
@@ -156,7 +165,7 @@ export function SaleSwiper({ products, tone = "dark", label = "The Archive Sale"
           }
         }}
       >
-        <div className="absolute inset-0 [transform-style:preserve-3d]">
+        <div className="sale-track absolute inset-0 [transform-style:preserve-3d]">
           {products.map((p, i) => {
             const left = sizesInStock(p);
             // Server-rendered starting pose (GSAP takes over after hydration).
@@ -178,7 +187,7 @@ export function SaleSwiper({ products, tone = "dark", label = "The Archive Sale"
                 aria-label={`${i + 1} of ${n}: ${p.name}`}
                 style={initial}
                 data-near={ao < 0.5 ? "true" : "false"}
-                className="group/s absolute left-1/2 top-0 w-[15.5rem] -ml-[7.75rem] will-change-transform sm:w-[17rem] sm:-ml-[8.5rem] md:w-[19.5rem] md:-ml-[9.75rem]"
+                className="sale-card group/s absolute left-1/2 top-0 w-[15.5rem] -ml-[7.75rem] will-change-transform sm:w-[17rem] sm:-ml-[8.5rem] md:w-[19.5rem] md:-ml-[9.75rem]"
               >
                 <Link
                   href={`/products/${p.slug}`}
@@ -202,7 +211,7 @@ export function SaleSwiper({ products, tone = "dark", label = "The Archive Sale"
                       </span>
                     )}
                   </div>
-                  <div className={clsx("mt-3 flex items-baseline justify-between gap-3 transition-opacity duration-500 group-data-[near=false]/s:opacity-0", dark ? "text-bone" : "text-char")}>
+                  <div className={clsx("sale-meta mt-3 flex items-baseline justify-between gap-3 transition-opacity duration-500 group-data-[near=false]/s:opacity-0", dark ? "text-bone" : "text-char")}>
                     <span className="truncate font-medium">{p.name}</span>
                     <span className="t-price shrink-0">
                       <span className={clsx("mr-1.5 line-through", dark ? "text-mist" : "text-muted")}>{money(p.compareAt!)}</span>
@@ -215,7 +224,7 @@ export function SaleSwiper({ products, tone = "dark", label = "The Archive Sale"
           })}
         </div>
       </div>
-      <div className={clsx("mt-6 flex items-center justify-center gap-4", dark ? "text-bone" : "text-char")}>
+      <div className={clsx("sale-ctrl mt-6 flex items-center justify-center gap-4", dark ? "text-bone" : "text-char")}>
         <button type="button" onClick={() => goTo(active - 1)} disabled={active === 0} className="icon-btn border border-current/30 disabled:opacity-30" aria-label="Previous piece">
           <IconArrow size={18} className="rotate-180" />
         </button>
