@@ -6,17 +6,23 @@
 - Live URL: https://ordova-fashion-demo.vercel.app
 - Repo: https://github.com/dbs-media-demos/ordova-fashion-demo (Vercel git-connected)
 - Folder: DBS Media Portfolio/Demo Websites/fashion
-- Stack: Next.js 16.3, React 19.2, Tailwind v4, GSAP (ScrollTrigger, SplitText, Flip), Lenis
+- Stack: Next.js 16.3, React 19.2, Tailwind v4, GSAP (ScrollTrigger, SplitText, Flip), Lenis, three.js 0.187 (desktop only)
 - Palette: char #151513, concrete #BDB8AF, sand #ECE7DE, bone #F6F3EE, olive #3F4231, moss #6B6E4F, cobalt #2B36F0   Fonts: Syne (display), Inter Tight (UI), DM Mono (labels)
 - Pages: 81 static routes — home, shop, 7 categories, 7 collections, 36 products, lookbook, studio, about, visit, size guide, shipping & returns, journal + 3 posts, gift cards, FAQ, reviews, privacy, terms, cart, checkout, success, wishlist, track, 404
 - Signature features:
-  - Runway hero: scroll dives through the O of the wordmark into the FW26 "Caliche" collection
+  - 3D cloth hero (desktop, real time): two lengths of the FW26 "Caliche" cloth (clay linen, moss wool) hang from brass clips in a plaster studio under one soft spotlight, with soft shadows on the wall. It is a real cloth simulation: a breeze keeps them breathing, the cursor moves the air through the folds, the scroll pushes the camera in while a draught lifts them, then the dive goes through the O of the wordmark into the collection
+  - "Feel the cloth" (desktop, 3D): one swatch on two clips; pick linen, wool, denim or knit and it re-hangs with that cloth's real weight, stiffness and stretch, and you can take hold of it and pull
   - "Many worlds" home: studio window zoom-through + sketch→tag sequence, fabric reel, Archive Sale 3D coverflow, lookbook deck, aperture visit scene
   - Lookbook with hotspots, mini product sheet and "Add the full look" staggered fly-to-cart
   - Living product cards (hover swap, swatch wipe, one-tap size add), Flip-animated filters, flip cards for last sizes, drop countdown
   - Shared-element morph into product pages, fit finder, size guide, calm checkout with card flip and a garment-folding success animation
 - Lighthouse (live, mobile, home): P 95–99 / A 100 / BP 100 / SEO 69 (only the intended noindex; 100 with NEXT_PUBLIC_NOINDEX=false). Shop 95–99, product 96–99 mobile; desktop 99–100.
 - Promo code: WELCOME10 (10% off). Test card: 4242 4242 4242 4242, any future date, any CVC. Nothing is charged or sent.
+
+## 3D (desktop only)
+- Why cloth: a fashion label's first promise is the fabric ("we buy fabric before we design"). Real cloth that drapes, catches light and moves when you touch the air around it says that better than any film, and it is exactly what a shopper can't feel online.
+- Built from primitives, no model files: the cloth is a position-based simulation (`src/components/fx/cloth/sim.ts`: structural, shear and bending links, long-range attachments, aerodynamic air); the weaves (linen plain weave with slubs, wool 2/2 twill, denim 3/1 twill, jersey knit) and the plaster are painted in code (`weave.ts`). Nothing to license, nothing to download but the code (~155 KB gzip for three.js + the scene, fetched on desktop only).
+- Phones and every non-3D screen get stills rendered from the same scene (`public/images/3d`, `node _src/stills/render.mjs`; hero phone still 17 KB AVIF). `src/lib/three-gate.ts` imports 3D only after load on a big screen with a mouse, without reduced motion or Save-Data: zero bytes of three.js on phones. A slow first two seconds or no real GPU fades back to the still for the visit.
 
 ## How to make it real
 All commerce goes through `src/lib/commerce` (`CommerceProvider` interface + `mock-provider.ts`). Swap in a Shopify Storefront API provider (Cart API + Shopify Checkout) or a Stripe provider (Checkout Session / Elements) and export it from `src/lib/commerce/index.ts` — the UI doesn't change. Card data in the demo form never leaves the component.

@@ -2,7 +2,7 @@
 
 A concept online store for a fictional concept store and small-batch label in Bishop Arts, Dallas. Built by [Scale by Noon](https://www.scalebynoon.com) to show what a modern, motion-rich e-commerce site can be. **Demo store: nothing is charged, nothing is sent.**
 
-- Next.js 16 (App Router, Turbopack), React 19.2 (`ViewTransition`), Tailwind CSS v4, GSAP 3 (ScrollTrigger, SplitText, Flip), Lenis
+- Next.js 16 (App Router, Turbopack), React 19.2 (`ViewTransition`), Tailwind CSS v4, GSAP 3 (ScrollTrigger, SplitText, Flip), Lenis, three.js (desktop only)
 - ~80 statically generated routes: 36 products, 7 categories, 7 collections, lookbook, studio, journal, checkout flow
 
 ## Run it
@@ -25,7 +25,9 @@ Demo promo code: **WELCOME10** (10% off). Test card: **4242 4242 4242 4242**, an
 | `src/lib/commerce/` | **The commerce adapter** (see below) |
 | `src/lib/store.ts` | Cart, wishlist, recently-viewed and UI stores (`useSyncExternalStore` + `localStorage`, every access in try/catch) |
 | `src/lib/bag.ts` | Add-to-bag + fly-to-cart animation |
-| `src/components/home/*` | The ten homepage scenes (runway zoom-through, studio window, fabric reel, archive coverflow…) |
+| `src/components/home/*` | The ten homepage scenes (cloth hero + O zoom-through, studio window, fabric reel + swatch table, archive coverflow…) |
+| `src/components/fx/cloth/*` | The three.js cloth: simulation, painted weaves, the hero and swatch scenes (desktop only, loaded through `src/lib/three-gate.ts`) |
+| `_src/stills/` | Renders the phone/fallback stills in `public/images/3d` from the live scene (`npm i --no-save esbuild playwright`, then `node _src/stills/render.mjs`) |
 | `src/components/shop/*` | Product card, Flip-animated filter grid, 3D sale swiper, flip cards, search, quick view |
 | `src/components/product/*` | Gallery (lens + fullscreen), buy box, fit finder, size guide |
 | `src/components/checkout/*` | Checkout steps, demo card form, success animation |
@@ -43,4 +45,4 @@ The demo card form (`components/checkout/CardForm.tsx`) never sends, stores or l
 
 ## Credits
 
-Photography and video from Unsplash and Pexels (free licences), listed in `public/images/SOURCES.md`. Fonts: Syne, Inter Tight, DM Mono (OFL), self-hosted and subset.
+Photography and video from Unsplash and Pexels (free licences), listed in `public/images/SOURCES.md`. The 3D cloth, weaves and studio are built in code (no model files). Fonts: Syne, Inter Tight, DM Mono (OFL), self-hosted and subset.

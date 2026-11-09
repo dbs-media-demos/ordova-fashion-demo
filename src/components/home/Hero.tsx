@@ -1,83 +1,100 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import clsx from "clsx";
 import { Ring } from "@/components/brand/Logo";
-import { gsap, ScrollTrigger, useIdleGSAP, prefersReducedMotion, isCoarse } from "@/lib/gsap";
-import { IconArrow, IconPause, IconPlay } from "@/components/ui/Icons";
+import { gsap, ScrollTrigger, useIdleGSAP, prefersReducedMotion } from "@/lib/gsap";
+import { useClothScene } from "@/lib/use-cloth-scene";
+import type { ClothScene } from "@/components/fx/cloth/ClothScene";
+import { IconArrow, IconPhone } from "@/components/ui/Icons";
+import { Stars } from "@/components/ui/Stars";
+import { site } from "@/lib/site";
 
 /** Counter (inner) radius of the ring as a fraction of its box: r 38.5 − stroke 21/2 = 28 of 100. */
 const COUNTER = 0.28;
+const DESKTOP = "(min-width: 1024px)";
+
+const STILL = "/images/3d/hero-cloth";
+const set = (name: string, ws: number[], ext: string) => ws.map((w) => `${name}-${w}.${ext} ${w}w`).join(", ");
+const WIDE_AVIF = set(STILL, [1100, 1600, 2400], "avif");
+const WIDE_WEBP = set(STILL, [1100, 1600, 2400], "webp");
+const PHONE_AVIF = set(`${STILL}-phone`, [750, 1000], "avif");
+const PHONE_WEBP = set(`${STILL}-phone`, [750, 1000], "webp");
 
 /**
- * Signature 1 — Runway hero.
- * A full-bleed walk under an oversized ORDOVA. Scroll and the camera dives
- * through the first O: its counter becomes a window that opens into the
- * FW26 "Caliche" collection. The layout is a tall section with a sticky
- * stage (no GSAP pin, so nothing is re-parented after hydration).
+ * Signature 1 — the Caliche cloth.
+ * Two lengths of the FW26 cloth (clay linen, moss wool) hang from brass clips in the studio, in
+ * real time on desktop: a breeze keeps them breathing, the cursor moves the air, and the scroll
+ * pushes the camera in while a draught lifts them — then the dive goes through the first O of the
+ * wordmark into the collection. Phones and every non-3D screen get a still rendered from the same
+ * scene (and zero bytes of three.js), stacked: photo, name, rating, Shop and Call.
  */
 export function Hero() {
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
+  const canvas = useRef<HTMLCanvasElement>(null);
   const word = useRef<HTMLDivElement>(null);
   const ring = useRef<HTMLSpanElement>(null);
   const win = useRef<HTMLDivElement>(null);
   const winImg = useRef<HTMLDivElement>(null);
   const copy = useRef<HTMLDivElement>(null);
   const finale = useRef<HTMLDivElement>(null);
-  const video = useRef<HTMLVideoElement>(null);
-  const [playing, setPlaying] = useState(false);
-  const [videoOn, setVideoOn] = useState(false);
 
-  // Video: desktop starts once idle; touch devices wait for the first interaction or 6 s (keeps LCP on the poster).
-  useEffect(() => {
-    if (prefersReducedMotion()) return;
-    const conn = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-    if (conn?.saveData) return;
-    let done = false;
-    const start = () => {
-      if (done) return;
-      done = true;
-      setVideoOn(true);
-    };
-    if (isCoarse()) {
-      const t = window.setTimeout(start, 6000);
-      const evs = ["touchstart", "scroll", "pointerdown"] as const;
-      evs.forEach((e) => window.addEventListener(e, start, { once: true, passive: true }));
+  const { live } = useClothScene({
+    mode: "hero",
+    canvas,
+    host: root,
+    holdQueue: true,
+    attach: (s: ClothScene) => {
+      const sec = root.current!;
+      const st = stage.current!;
+      const onScroll = () => {
+        const span = sec.offsetHeight - window.innerHeight;
+        s.setProgress(span > 0 ? (window.scrollY - sec.offsetTop) / span : 0);
+      };
+      const onMove = (e: PointerEvent) => {
+        if (e.pointerType !== "mouse") return;
+        const r = st.getBoundingClientRect();
+        s.setPointer(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1, true);
+      };
+      const onLeave = () => s.setPointer(0, 0, false);
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      st.addEventListener("pointermove", onMove, { passive: true });
+      st.addEventListener("pointerleave", onLeave);
+      // the first seconds on screen: a draught through the studio
+      const t = window.setTimeout(() => s.wake(), 250);
       return () => {
         window.clearTimeout(t);
-        evs.forEach((e) => window.removeEventListener(e, start));
+        window.removeEventListener("scroll", onScroll);
+        st.removeEventListener("pointermove", onMove);
+        st.removeEventListener("pointerleave", onLeave);
       };
-    }
-    const t = window.setTimeout(start, 1800);
-    return () => window.clearTimeout(t);
-  }, []);
+    },
+  });
 
-  useEffect(() => {
-    const v = video.current;
-    if (!videoOn || !v) return;
-    v.play().catch(() => {});
-  }, [videoOn]);
-
+  // Desktop: the counter of the O blinks open into FW26, and the scroll dives through it.
   useIdleGSAP(() => {
     const sec = root.current;
     const w = word.current;
     const r = ring.current;
     const wn = win.current;
-    if (!sec || !w || !r || !wn || !stage.current) return;
+    const st = stage.current;
+    if (!sec || !w || !r || !wn || !st || !window.matchMedia(DESKTOP).matches) return;
     const reduced = prefersReducedMotion();
 
     let geo = { cx: 0, cy: 0, r0: 0, ox: 0, oy: 0, S: 10, vw: 0, vh: 0 };
     const measure = () => {
       gsap.set(w, { clearProps: "transform" });
-      const st = stage.current!.getBoundingClientRect();
+      const sr = st.getBoundingClientRect();
       const wr = w.getBoundingClientRect();
       const rr = r.getBoundingClientRect();
-      const vw = st.width;
-      const vh = st.height;
-      const cx = rr.left - st.left + rr.width / 2;
-      const cy = rr.top - st.top + rr.height / 2;
+      const vw = sr.width;
+      const vh = sr.height;
+      const cx = rr.left - sr.left + rr.width / 2;
+      const cy = rr.top - sr.top + rr.height / 2;
       const r0 = rr.width * COUNTER;
       const far = Math.hypot(vw / 2, vh / 2);
       geo = { cx, cy, r0, ox: rr.left - wr.left + rr.width / 2, oy: rr.top - wr.top + rr.height / 2, S: (far / r0) * 1.08, vw, vh };
@@ -98,7 +115,6 @@ export function Hero() {
       wn.style.clipPath = `circle(${rad.toFixed(1)}px at ${(cx + dx).toFixed(1)}px ${(cy + dy).toFixed(1)}px)`;
     };
 
-    // The counter "blinks open" into a window shortly after load.
     gsap.to(state, { open: 1, duration: reduced ? 0 : 1.4, ease: "expo.inOut", delay: reduced ? 0 : 0.2, onUpdate: apply });
     apply();
     gsap.set(wn, { autoAlpha: 1 });
@@ -120,120 +136,125 @@ export function Hero() {
     tl.to(state, { p: 1, duration: 1, onUpdate: apply }, 0)
       .to(copy.current, { y: -60, opacity: 0, duration: 0.18 }, 0)
       .fromTo(winImg.current, { scale: 1.35 }, { scale: 1, duration: 1 }, 0)
-      .fromTo(finale.current!.querySelectorAll("[data-fin]"), { yPercent: 120 }, { yPercent: 0, stagger: 0.03, duration: 0.18, ease: "power2.out" }, 0.78)
+      // y: 0 clears the server's translateY(120%), which GSAP would otherwise keep as a pixel offset
+      .fromTo(finale.current!.querySelectorAll("[data-fin]"), { y: 0, yPercent: 120 }, { y: 0, yPercent: 0, stagger: 0.03, duration: 0.18, ease: "power2.out" }, 0.78)
       .fromTo(finale.current!.querySelectorAll("[data-fin-fade]"), { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.15 }, 0.85);
 
     const ro = new ResizeObserver(() => ScrollTrigger.refresh());
-    ro.observe(stage.current);
+    ro.observe(st);
     return () => ro.disconnect();
   }, root);
 
+  const rating = (
+    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-bone/90">
+      <Stars value={site.rating.value} size={13} className="text-[#e9c46a]" />
+      <span>
+        <strong className="font-semibold text-bone">{site.rating.value}</strong> · {site.rating.count} Google reviews
+      </span>
+    </p>
+  );
+
   return (
-    <section ref={root} className="relative h-[100svh] motion-safe:h-[250svh]" aria-labelledby="hero-title">
-      <div ref={stage} className="theme-char sticky top-0 h-[100svh] overflow-hidden">
-        {/* Layer 1 — runway film (poster is the LCP image) */}
-        <div className="absolute inset-0">
-          <Image
-            src="/images/ed/hero-poster.jpg"
-            alt=""
-            fill
-            preload
-            sizes="100vw"
-            quality={70}
-            className="object-cover object-[50%_30%]"
-          />
-          {videoOn && (
-            <video
-              ref={video}
-              className={`absolute inset-0 h-full w-full object-cover object-[50%_30%] transition-opacity duration-1000 ${playing ? "opacity-100" : "opacity-0"}`}
-              src="/video/runway.mp4"
-              muted
-              loop
-              playsInline
-              preload="auto"
-              aria-hidden="true"
-              onPlaying={() => setPlaying(true)}
-              onPause={() => setPlaying(false)}
+    <section ref={root} className="theme-char relative pt-[var(--header-h)] lg:pt-0 lg:motion-safe:h-[250svh]" aria-labelledby="hero-title">
+      <div ref={stage} className="relative lg:sticky lg:top-0 lg:h-[100svh] lg:overflow-hidden">
+        {/* Layer 1 — the cloth: a still from the scene (the LCP image), the live canvas fades in over it on desktop */}
+        <div className="relative h-[min(50svh,112vw)] overflow-hidden lg:absolute lg:inset-0 lg:h-auto">
+          <link rel="preload" as="image" type="image/avif" imageSrcSet={PHONE_AVIF} imageSizes="100vw" media="(max-width: 1023px)" fetchPriority="high" />
+          <link rel="preload" as="image" type="image/avif" imageSrcSet={WIDE_AVIF} imageSizes="100vw" media={DESKTOP} fetchPriority="high" />
+          <picture>
+            <source media={DESKTOP} type="image/avif" srcSet={WIDE_AVIF} sizes="100vw" />
+            <source media={DESKTOP} type="image/webp" srcSet={WIDE_WEBP} sizes="100vw" />
+            <source type="image/avif" srcSet={PHONE_AVIF} sizes="100vw" />
+            <source type="image/webp" srcSet={PHONE_WEBP} sizes="100vw" />
+            <img
+              src={`${STILL}-phone-750.webp`}
+              alt="FW26 Caliche cloth in the Ordova studio: clay linen and moss wool hanging from brass clips"
+              fetchPriority="high"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover object-[50%_55%] lg:object-center"
             />
-          )}
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgb(21_21_19/0.55)_0%,rgb(21_21_19/0.15)_38%,rgb(21_21_19/0.25)_62%,rgb(21_21_19/0.78)_100%)]" />
-        </div>
+          </picture>
+          <canvas
+            ref={canvas}
+            aria-hidden="true"
+            className={clsx("absolute inset-0 hidden h-full w-full transition-opacity duration-[1400ms] ease-out lg:block", live ? "opacity-100" : "opacity-0")}
+          />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgb(21_21_19/0.35)_0%,transparent_30%,transparent_62%,rgb(21_21_19/0.6)_100%)] lg:bg-[linear-gradient(180deg,rgb(21_21_19/0.62)_0%,rgb(21_21_19/0.08)_24%,rgb(21_21_19/0.05)_58%,rgb(21_21_19/0.72)_100%)]" />
 
-        {/* Layer 2 — the window into FW26, clipped to the O's counter */}
-        <div ref={win} className="invisible absolute inset-0 z-[2]" style={{ clipPath: "circle(0px at 50% 50%)" }} aria-hidden="true">
-          <div ref={winImg} className="absolute inset-0 will-change-transform">
-            <Image src="/images/ed/fw26-caliche.jpg" alt="" fill sizes="100vw" quality={70} className="object-cover" />
+          <div className="absolute inset-x-0 top-0 bg-[linear-gradient(180deg,rgb(21_21_19/0.7),transparent)] px-4 pb-10 pt-4 text-bone lg:hidden">
+            <p className="t-mono text-[0.68rem]">FW26 · Drop 02 — &ldquo;Caliche&rdquo; is in the shop</p>
+            <p className="mt-1 max-w-[34ch] text-[0.8rem] leading-snug text-bone/85">Named for the pale Texas earth: chalk, clay and dry-grass tones in linen, wool and raw denim.</p>
           </div>
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgb(21_21_19/0.6))]" />
-        </div>
 
-        {/* Layer 3 — the oversized wordmark */}
-        <div className="absolute inset-x-0 top-[49%] z-[3] -translate-y-1/2 md:top-[50%]">
-          <div ref={word} className="flex justify-center will-change-transform">
-            <h1 id="hero-title" className="flex items-center font-display text-[14.2vw] font-extrabold uppercase leading-[0.8] tracking-[-0.045em] text-bone">
-              <span className="anim-mask">
-                <span ref={ring} className="block" style={{ "--d": "0.05s" } as React.CSSProperties}>
+          {/* Layer 2 — the window into FW26, clipped to the O's counter (desktop) */}
+          <div ref={win} className="invisible absolute inset-0 z-[2] hidden lg:block" style={{ clipPath: "circle(0px at 50% 50%)" }} aria-hidden="true">
+            <div ref={winImg} className="absolute inset-0 will-change-transform">
+              <Image src="/images/ed/fw26-caliche.jpg" alt="" fill sizes="100vw" quality={70} className="object-cover" />
+            </div>
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgb(21_21_19/0.6))]" />
+          </div>
+
+          {/* Layer 3 — the oversized wordmark */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 z-[3] lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2">
+            <div ref={word} className="flex justify-center will-change-transform">
+              <h1 id="hero-title" className="flex items-center font-display text-[14.2vw] font-extrabold uppercase leading-[0.8] tracking-[-0.045em] text-bone">
+                <span ref={ring} className="block">
                   <Ring className="h-[0.74em] w-[0.74em]" />
                 </span>
-              </span>
-              {"rdova".split("").map((c, i) => (
-                <span key={i} className="anim-mask" aria-hidden="true">
-                  <span style={{ "--d": `${0.1 + i * 0.05}s` } as React.CSSProperties}>{c}</span>
-                </span>
-              ))}
-              <span className="sr-only">Ordova — concept store and small-batch label, Dallas</span>
-            </h1>
+                <span aria-hidden="true">rdova</span>
+                <span className="sr-only">Ordova — concept store and small-batch label, Bishop Arts, Dallas</span>
+              </h1>
+            </div>
           </div>
         </div>
 
-        {/* Layer 4 — copy & CTAs */}
-        <div ref={copy} className="container-x absolute inset-0 z-[4] flex flex-col justify-between pb-24 pt-[calc(var(--header-h)+1.25rem)] md:pb-20">
-          <div className="anim-fade flex items-start justify-between gap-6" style={{ "--d": "0.4s" } as React.CSSProperties}>
+        {/* Layer 4 — copy & CTAs: stacked under the photo on phones, around the scene on desktop */}
+        <div ref={copy} className="container-x relative z-[4] pb-7 pt-5 lg:absolute lg:inset-0 lg:flex lg:flex-col lg:justify-between lg:pb-16 lg:pt-[calc(var(--header-h)+1.25rem)]">
+          <div className="hidden items-start justify-between gap-6 lg:flex">
             <p className="t-mono max-w-[22ch] text-bone/90">FW26 · Drop 02 — &ldquo;Caliche&rdquo; is in the shop</p>
-            <p className="t-mono hidden text-right text-bone/90 md:block">
-              Bishop Arts, Dallas
-              <br />
-              Est. 2019
-            </p>
+            <div className="flex flex-col items-end gap-2 text-right">
+              <p className="t-mono text-bone/90">Bishop Arts, Dallas · Est. 2019</p>
+              {rating}
+              <a href={site.phoneHref} className="t-mono link-u text-bone">
+                {site.phone}
+              </a>
+            </div>
           </div>
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div className="anim-fade max-w-md" style={{ "--d": "0.55s" } as React.CSSProperties}>
-              <p className="text-balance text-[1.05rem] leading-snug text-bone md:text-lg">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-md">
+              <p className="text-balance text-[1.08rem] leading-snug text-bone lg:text-lg">
                 Fewer, better clothes — cut and sewn a mile from the shop, in runs of thirty.
               </p>
-              <div className="mt-5 flex flex-wrap gap-2">
-                <Link href="/collections/new-in" className="btn btn-light">
+              <div className="mt-3 lg:hidden">{rating}</div>
+              <p className="t-mono mt-1 text-[0.68rem] text-bone/70 lg:hidden">Bishop Arts, Dallas · Est. 2019</p>
+              <div className="mt-5 grid grid-cols-2 gap-2 lg:flex lg:flex-wrap">
+                <Link href="/collections/new-in" className="btn btn-light max-lg:min-h-[2.75rem] max-lg:px-3 max-lg:text-[0.68rem]">
                   Shop new in <IconArrow size={16} />
                 </Link>
-                <Link href="/lookbook" className="btn btn-ghost text-bone">
+                <a href={site.phoneHref} className="btn btn-ghost btn-sm px-3 tracking-[0.04em] text-bone lg:hidden" aria-label={`Call the shop, ${site.phone}`}>
+                  <IconPhone size={15} /> {site.phone}
+                </a>
+                <Link href="/lookbook" className="btn btn-ghost hidden text-bone lg:inline-flex">
                   The lookbook
                 </Link>
               </div>
             </div>
-            <div className="anim-fade hidden items-center gap-4 md:flex" style={{ "--d": "0.7s" } as React.CSSProperties}>
-              {videoOn && (
-                <button
-                  type="button"
-                  className="icon-btn border border-line-lt text-bone"
-                  aria-label={playing ? "Pause background film" : "Play background film"}
-                  onClick={() => (playing ? video.current?.pause() : video.current?.play())}
-                >
-                  {playing ? <IconPause size={14} /> : <IconPlay size={14} />}
-                </button>
-              )}
-              <p className="t-mono text-bone/85">Scroll — step through the O</p>
-            </div>
+            <p className="t-mono hidden text-right text-bone/85 lg:block">
+              Move through the cloth
+              <br />
+              Scroll — step through the O
+            </p>
           </div>
         </div>
 
-        {/* Finale — inside the window */}
-        <div ref={finale} className="container-x pointer-events-none absolute inset-x-0 bottom-0 z-[5] pb-28 text-bone md:pb-14">
+        {/* Finale — inside the window (desktop scroll) */}
+        <div ref={finale} className="container-x pointer-events-none absolute inset-x-0 bottom-0 z-[5] hidden pb-14 text-bone lg:block">
           <p className="t-mono overflow-hidden">
             <span data-fin className="block" style={{ transform: "translateY(120%)" }}>
               Now in the shop — FW26 · Drop 02
             </span>
           </p>
-          <p className="mt-3 flex overflow-hidden font-display text-[12vw] font-extrabold uppercase leading-[0.82] tracking-[-0.04em] md:text-[10.5vw]" aria-hidden="true">
+          <p className="mt-3 flex overflow-hidden font-display text-[10.5vw] font-extrabold uppercase leading-[0.82] tracking-[-0.04em]" aria-hidden="true">
             {"Caliche".split("").map((c, i) => (
               <span key={i} data-fin className="inline-block" style={{ transform: "translateY(120%)" }}>
                 {c}

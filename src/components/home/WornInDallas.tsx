@@ -49,7 +49,8 @@ export function WornInDallas() {
               <p className="mt-1 text-sm text-muted">{site.rating.count} Google reviews · Bishop Arts</p>
             </div>
           </div>
-          <ul className="mt-10 space-y-6">
+          <p className="t-mono mt-8 text-[0.68rem] text-muted">Sample reviews for this concept site</p>
+          <ul className="mt-4 space-y-6">
             {QUOTES.map((x) => (
               <li key={x.a} className="border-l-2 border-cobalt pl-5">
                 <blockquote className="text-lg leading-snug">&ldquo;{x.q}&rdquo;</blockquote>

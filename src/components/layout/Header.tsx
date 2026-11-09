@@ -138,7 +138,7 @@ export function Header() {
         className={clsx(
           "vt-header fixed inset-x-0 top-0 z-[100] transition-[transform,background-color,color,box-shadow] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
           hidden && !mega && !menu ? "-translate-y-full" : "translate-y-0",
-          over ? "bg-transparent text-bone" : "bg-bone/92 text-char shadow-[0_1px_0_rgb(21_21_19/0.08)] backdrop-blur-md",
+          over ? "bg-char text-bone" : "bg-bone text-char shadow-[0_1px_0_rgb(21_21_19/0.08)]",
         )}
       >
         <div className="container-x grid h-[var(--header-h)] grid-cols-[1fr_auto_1fr] items-center gap-4">

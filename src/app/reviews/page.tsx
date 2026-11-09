@@ -41,6 +41,7 @@ export default function ReviewsPage() {
           <p className="font-display text-[6rem] font-extrabold leading-none">{site.rating.value}</p>
           <Stars value={site.rating.value} size={22} />
           <p className="mt-2 text-muted">{site.rating.count} reviews on Google</p>
+          <p className="t-mono mt-2 text-[0.68rem] text-muted">Reviews below are samples for this concept site</p>
           <dl className="mt-8 space-y-2">
             {breakdown.map(([s, pct]) => (
               <div key={s} className="grid grid-cols-[3rem_1fr_3rem] items-center gap-3 text-sm">
