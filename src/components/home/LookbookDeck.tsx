@@ -63,7 +63,7 @@ export function LookbookDeck() {
     <section ref={root} className="relative bg-sand ph:hidden desk:h-[280svh]" aria-labelledby="deck-title">
       <div ref={stage} className="grain relative h-[100svh] overflow-hidden desk:sticky desk:top-0">
         <div className="container-x absolute inset-x-0 top-0 z-[60] flex items-start justify-between pt-[calc(var(--header-h)+1.5rem)]">
-          <p className="t-mono text-muted">( 07 ) FW26 Lookbook</p>
+          <p className="t-mono text-muted">( 08 ) FW26 Lookbook</p>
           <p className="t-mono hidden text-muted md:block">8 looks · shot around Dallas</p>
         </div>
         <div data-title className="pointer-events-none absolute inset-0 z-[40] grid place-items-center">
@@ -105,7 +105,7 @@ function PhoneDeck() {
   return (
     <section {...cv("deck")} className="grain hidden bg-sand py-16 ph:block" aria-labelledby="deck-title-ph">
       <div className="container-x flex items-start justify-between gap-4">
-        <p className="t-mono text-muted">( 07 ) FW26 Lookbook</p>
+        <p className="t-mono text-muted">( 08 ) FW26 Lookbook</p>
         <p className="t-mono text-muted">8 looks · shot around Dallas</p>
       </div>
       <h2 id="deck-title-ph" className="container-x mt-4 font-display text-[3rem] font-extrabold uppercase leading-[0.82] tracking-[-0.045em] text-char/90">

@@ -12,7 +12,7 @@ export function ArchiveScene({ products }: { products: Product[] }) {
     <section {...cv("archive")} className="theme-olive relative overflow-hidden py-16 md:py-32" aria-labelledby="archive-title">
       <div className="container-x grid gap-10 md:grid-cols-12 md:items-end">
         <div className="md:col-span-7">
-          <p className="t-mono text-bone/80">( 06 ) On sale now</p>
+          <p className="t-mono text-bone/80">( 07 ) On sale now</p>
           <SplitReveal id="archive-title" by="chars" className="mt-3 font-display text-[clamp(1.6rem,8.4vw,6.5rem)] font-extrabold uppercase leading-[0.84] tracking-[-0.04em] md:text-[clamp(2.2rem,7vw,6.5rem)]">
             The Archive Sale
           </SplitReveal>

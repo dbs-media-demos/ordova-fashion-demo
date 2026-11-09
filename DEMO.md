@@ -8,7 +8,7 @@
 - Folder: DBS Media Portfolio/Demo Websites/fashion
 - Stack: Next.js 16.3, React 19.2, Tailwind v4, GSAP (ScrollTrigger, SplitText, Flip), Lenis, three.js 0.187 (desktop only)
 - Palette: char #151513, concrete #BDB8AF, sand #ECE7DE, bone #F6F3EE, olive #3F4231, moss #6B6E4F, cobalt #2B36F0   Fonts: Syne (display), Inter Tight (UI), DM Mono (labels)
-- Pages: 81 static routes — home, shop, 7 categories, 7 collections, 36 products, lookbook, studio, about, visit, size guide, shipping & returns, journal + 3 posts, gift cards, FAQ, reviews, privacy, terms, cart, checkout, success, wishlist, track, 404
+- Pages: 81 static routes — home (reviews now third, right after New in), shop, 7 categories, 7 collections, 36 products, lookbook, studio, about, visit, size guide, shipping & returns, journal + 3 posts, gift cards, FAQ, reviews, privacy, terms, cart, checkout, success, wishlist, track, 404
 - Signature features:
   - 3D cloth hero (desktop, real time): two lengths of the FW26 "Caliche" cloth (clay linen, moss wool) hang from brass clips in a plaster studio under one soft spotlight, with soft shadows on the wall. It is a real cloth simulation: a breeze keeps them breathing, the cursor moves the air through the folds, the scroll pushes the camera in while a draught lifts them, then the dive goes through the O of the wordmark into the collection
   - "Feel the cloth" (desktop, 3D): one swatch on two clips; pick linen, wool, denim or knit and it re-hangs with that cloth's real weight, stiffness and stretch, and you can take hold of it and pull
@@ -23,6 +23,8 @@
 - Why cloth: a fashion label's first promise is the fabric ("we buy fabric before we design"). Real cloth that drapes, catches light and moves when you touch the air around it says that better than any film, and it is exactly what a shopper can't feel online.
 - Built from primitives, no model files: the cloth is a position-based simulation (`src/components/fx/cloth/sim.ts`: structural, shear and bending links, long-range attachments, aerodynamic air); the weaves (linen plain weave with slubs, wool 2/2 twill, denim 3/1 twill, jersey knit) and the plaster are painted in code (`weave.ts`). Nothing to license, nothing to download but the code (~155 KB gzip for three.js + the scene, fetched on desktop only).
 - Phones and every non-3D screen get stills rendered from the same scene (`public/images/3d`, `node _src/stills/render.mjs`; hero phone still 17 KB AVIF). `src/lib/three-gate.ts` imports 3D only after load on a big screen with a mouse, without reduced motion or Save-Data: zero bytes of three.js on phones. A slow first two seconds or no real GPU fades back to the still for the visit.
+- Measured on the production build (2026-11-09). Phone, 375 px, 4x CPU, slow 4G: first-load JS 180 KB home / 172 KB shop / 189 KB product, LCP 1.4-1.6 s (the cloth still), TBT 100-150 ms, CLS 0, 0 bytes of three.js on all 74 routes, ~490 KB on first load, 2 font files. Desktop (1440x900): hero ready ~2 s after load, 2-4 ms of work per frame.
+- Phones: no pinned or scrubbed scenes, no Lenis, GSAP only after load (`src/lib/gsap.ts`); below-the-fold sections hold their measured heights (`src/lib/cv.ts`, `scripts/section-heights.mjs`). Measure with `npm run build && node scripts/with-server.mjs node scripts/phone-budget.mjs / 375`.
 
 ## How to make it real
 All commerce goes through `src/lib/commerce` (`CommerceProvider` interface + `mock-provider.ts`). Swap in a Shopify Storefront API provider (Cart API + Shopify Checkout) or a Stripe provider (Checkout Session / Elements) and export it from `src/lib/commerce/index.ts` — the UI doesn't change. Card data in the demo form never leaves the component.
@@ -36,4 +38,4 @@ SR one-liner: Online prodavnica butika iz Dalasa koja se kreće kao modni film, 
 SR summary: Koncept prodavnica i mala modna linija iz Bishop Artsa, sada online. Skrol vodi kroz logo pravo u novu kolekciju, lookbook se kupuje komad po komad, a filteri, kartice i naplata su animirani, a opet brzi i jednostavni.
 
 ## Screenshots
-handoff/desktop-home.png, handoff/desktop-feature.png, handoff/desktop-shop.png, handoff/desktop-product.png, handoff/mobile-home.png, handoff/mobile-product.png, handoff/mobile-checkout.png, handoff/scroll.mp4
+handoff/desktop-home.png, handoff/desktop-feature.png, handoff/desktop-shop.png, handoff/desktop-product.png, handoff/mobile-home.png, handoff/mobile-product.png, handoff/mobile-checkout.png, handoff/scroll.mp4 (desktop-home, desktop-feature and mobile-home show the 3D pass; scroll.mp4 still shows the earlier runway-film hero)

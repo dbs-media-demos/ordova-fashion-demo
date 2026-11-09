@@ -50,7 +50,7 @@ export function Wardrobes() {
     <section ref={root} {...cv("wardrobes")} className="bg-bone py-16 md:py-36" aria-labelledby="wardrobes-title">
       <div className="container-x mb-8 flex flex-wrap items-end justify-between gap-6 md:mb-12">
         <div>
-          <p className="t-mono text-muted">( 03 ) Three wardrobes</p>
+          <p className="t-mono text-muted">( 04 ) Three wardrobes</p>
           <h2 id="wardrobes-title" className="t-h2 mt-3 max-w-[14ch]">
             One point of view, cut three ways
           </h2>

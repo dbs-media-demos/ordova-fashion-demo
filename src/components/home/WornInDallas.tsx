@@ -6,6 +6,7 @@ import Link from "next/link";
 import { gsap, useIdleGSAP, prefersReducedMotion } from "@/lib/gsap";
 import { site } from "@/lib/site";
 import { Stars } from "@/components/ui/Stars";
+import { cv } from "@/lib/cv";
 import { IconArrow } from "@/components/ui/Icons";
 
 const COLS = [
@@ -35,10 +36,10 @@ export function WornInDallas() {
   }, root);
 
   return (
-    <section ref={root} className="relative overflow-hidden bg-bone py-24 md:py-32" aria-labelledby="worn-title">
+    <section ref={root} {...cv("worn")} className="relative overflow-hidden bg-bone py-24 md:py-32" aria-labelledby="worn-title">
       <div className="container-x grid gap-14 lg:grid-cols-12">
         <div className="lg:col-span-5 lg:py-16">
-          <p className="t-mono text-muted">( 08 ) Worn in Dallas</p>
+          <p className="t-mono text-muted">( 03 ) Worn in Dallas</p>
           <h2 id="worn-title" className="t-h2 mt-3 max-w-[12ch]">
             What people say after a year
           </h2>

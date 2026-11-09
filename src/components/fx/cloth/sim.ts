@@ -70,8 +70,8 @@ export class Cloth {
   gust: ((x: number, y: number, z: number, t: number, out: [number, number, number]) => void) | null = null;
   /** Hand: a soft sphere of moving air at a point (the cursor). */
   hand = { x: 0, y: 0, z: 0, r: 0.5, vx: 0, vy: 0, vz: 0, on: 0 };
-  /** One grabbed point, dragged to a target (the swatch). */
-  grab = { i: -1, x: 0, y: 0, z: 0 };
+  /** A held patch, dragged to a target (the swatch): a fingertip's worth of cloth, not one point. */
+  grab = { i: -1, x: 0, y: 0, z: 0, set: [] as number[], off: [] as number[], w: [] as number[] };
   time = 0;
 
   constructor(o: ClothOpts) {
@@ -290,12 +290,14 @@ export class Cloth {
           }
         }
       }
-      if (grab.i >= 0) {
-        const k = grab.i * 3;
-        pos[k] = grab.x;
-        pos[k + 1] = grab.y;
-        pos[k + 2] = grab.z;
-      }
+      if (grab.i >= 0)
+        for (let m = 0; m < grab.set.length; m++) {
+          const k = grab.set[m] * 3,
+            w = grab.w[m];
+          pos[k] += (grab.x + grab.off[m * 3] - pos[k]) * w;
+          pos[k + 1] += (grab.y + grab.off[m * 3 + 1] - pos[k + 1]) * w;
+          pos[k + 2] += (grab.z + grab.off[m * 3 + 2] - pos[k + 2]) * w;
+        }
     }
     // the floor and the wall: stop, with a little friction
     for (let q = 0; q < n; q++) {
@@ -349,6 +351,30 @@ export class Cloth {
         shade[j * cols + i] = 1 - Math.min(0.55, Math.max(0, curl * 3.2));
       }
     }
+  }
+
+  /** Take hold of the cloth around point `i`: the patch within `r` grid cells, firm at the centre, soft at its rim. */
+  hold(i: number, r: number) {
+    const { grab, cols, rows, pos } = this;
+    const ci = i % cols,
+      cj = Math.floor(i / cols);
+    grab.i = i;
+    grab.x = pos[i * 3];
+    grab.y = pos[i * 3 + 1];
+    grab.z = pos[i * 3 + 2];
+    grab.set = [];
+    grab.off = [];
+    grab.w = [];
+    for (let j = Math.max(0, cj - r); j <= Math.min(rows - 1, cj + r); j++)
+      for (let k = Math.max(0, ci - r); k <= Math.min(cols - 1, ci + r); k++) {
+        const d = Math.hypot(k - ci, j - cj);
+        if (d > r) continue;
+        const q = j * cols + k;
+        if (this.pin[q * 3] === this.pin[q * 3]) continue;
+        grab.set.push(q);
+        grab.off.push(pos[q * 3] - grab.x, pos[q * 3 + 1] - grab.y, pos[q * 3 + 2] - grab.z);
+        grab.w.push(d === 0 ? 1 : 0.6 * (1 - d / (r + 1)));
+      }
   }
 
   /** Nearest particle to a point (for grabbing). */

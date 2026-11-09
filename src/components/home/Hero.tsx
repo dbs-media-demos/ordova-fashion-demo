@@ -155,7 +155,7 @@ export function Hero() {
   );
 
   return (
-    <section ref={root} className="theme-char relative pt-[var(--header-h)] lg:pt-0 lg:motion-safe:h-[250svh]" aria-labelledby="hero-title">
+    <section ref={root} className="theme-char relative pt-[var(--header-h)] lg:pt-0 deskl:motion-safe:h-[250svh]" aria-labelledby="hero-title">
       <div ref={stage} className="relative lg:sticky lg:top-0 lg:h-[100svh] lg:overflow-hidden">
         {/* Layer 1 — the cloth: a still from the scene (the LCP image), the live canvas fades in over it on desktop */}
         <div className="relative h-[min(50svh,112vw)] overflow-hidden lg:absolute lg:inset-0 lg:h-auto">

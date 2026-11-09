@@ -31,12 +31,12 @@ export default function Home() {
       <Hero />
       <Manifesto />
       <NewInTrack products={fresh} />
+      <WornInDallas />
       <Wardrobes />
       <StudioWindow />
       <FabricReel />
       <ArchiveScene products={archiveSale().map(toCard)} />
       <LookbookDeck />
-      <WornInDallas />
       <VisitAperture />
     </>
   );

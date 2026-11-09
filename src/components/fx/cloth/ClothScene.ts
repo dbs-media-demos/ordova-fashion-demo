@@ -65,7 +65,7 @@ const FEEL: Record<FabricId, Feel & { iterations: number }> = {
   linen: { stretch: 1, shear: 0.9, bend: 0.6, keep: 0.993, drag: 1.5, gravity: 9.8, give: 1.01, iterations: 14 },
   wool: { stretch: 1, shear: 0.75, bend: 0.22, keep: 0.986, drag: 0.85, gravity: 9.8, give: 1.02, iterations: 14 },
   denim: { stretch: 1, shear: 1, bend: 1, keep: 0.99, drag: 0.5, gravity: 9.8, give: 1, iterations: 22 },
-  knit: { stretch: 0.5, shear: 0.5, bend: 0.06, keep: 0.982, drag: 0.8, gravity: 9.8, give: 1.16, iterations: 14 },
+  knit: { stretch: 0.55, shear: 0.6, bend: 0.2, keep: 0.982, drag: 0.8, gravity: 9.8, give: 1.16, iterations: 14 },
 };
 
 /** How each cloth looks. Threads are drawn a little larger than life so the weave reads. */
@@ -408,8 +408,8 @@ export async function createClothScene(canvas: HTMLCanvasElement, opts: Opts): P
     // one swatch on two clips: wider than the clips are apart, so the top falls into a soft cowl
     const W = 0.62,
       Ht = 0.78,
-      cols = 26,
-      rows = 32;
+      cols = 32,
+      rows = 40;
     const c = clipped({ cols, rows, width: W, height: Ht, x: 0, y: 1.02, z: 0, clips: [0, 1], at: [-W * 0.4, W * 0.4], feel: fabric, wall: wallZ + 0.03, seed: 3 });
     for (const id of ["linen", "wool", "denim", "knit"] as FabricId[]) {
       const m = own(clothMaterial(id, aniso));
@@ -517,7 +517,7 @@ export async function createClothScene(canvas: HTMLCanvasElement, opts: Opts): P
     plane.constant = -z;
     return ray.ray.intersectPlane(plane, hit) ? hit : null;
   };
-  const grabDepth = { z: 0 };
+  const grabDepth = { x: 0, y: 0, z: 0 };
 
   const simulate = (dt: number) => {
     draught = Math.max(0, draught - dt * 0.33);
@@ -664,11 +664,10 @@ export async function createClothScene(canvas: HTMLCanvasElement, opts: Opts): P
         }
       }
       if (best < 0) return false;
+      grabDepth.x = c.pos[best * 3];
+      grabDepth.y = c.pos[best * 3 + 1];
       grabDepth.z = c.pos[best * 3 + 2];
-      c.grab.i = best;
-      c.grab.x = c.pos[best * 3];
-      c.grab.y = c.pos[best * 3 + 1];
-      c.grab.z = grabDepth.z;
+      c.hold(best, 2);
       api.drag(nx, ny);
       return true;
     },
@@ -677,10 +676,19 @@ export async function createClothScene(canvas: HTMLCanvasElement, opts: Opts): P
       const w = toWorld(nx, ny, grabDepth.z);
       if (!w) return;
       const g = swatch.cloth.grab;
-      // a little give: it can't be pulled through the wall or far off the clips
-      g.x = Math.max(-0.7, Math.min(0.7, w.x));
-      g.y = Math.max(0.05, Math.min(1.3, w.y));
-      g.z = Math.max(wallZ + 0.05, grabDepth.z + 0.06);
+      // a hand pulls cloth towards itself: a short reach, coming forward as it goes, so the
+      // swatch tents out instead of folding through itself
+      let dx = w.x - grabDepth.x,
+        dy = w.y - grabDepth.y;
+      const d = Math.hypot(dx, dy),
+        reach = 0.15;
+      if (d > reach) {
+        dx *= reach / d;
+        dy *= reach / d;
+      }
+      g.x = grabDepth.x + dx;
+      g.y = grabDepth.y + dy;
+      g.z = grabDepth.z + 0.05 + Math.min(d, reach) * 0.9;
       invalidate();
     },
     release() {

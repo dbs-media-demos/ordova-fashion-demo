@@ -16,7 +16,7 @@ await page.goto(base + "/", { waitUntil: "load" });
 await page.waitForTimeout(3500);
 const y = await page.evaluate(() => {
   const el = document.querySelector('[role="radiogroup"]').parentElement.parentElement;
-  return el.getBoundingClientRect().top + scrollY - 120;
+  return el.getBoundingClientRect().top + scrollY - 40;
 });
 await page.evaluate((y) => (window.__lenis ? window.__lenis.scrollTo(y, { immediate: true }) : window.scrollTo(0, y)), y);
 await page.waitForTimeout(4500);

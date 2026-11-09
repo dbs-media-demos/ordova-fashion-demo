@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
-import { gsap, useIdleGSAP, prefersReducedMotion } from "@/lib/gsap";
+import { gsap, useIdleGSAP, prefersReducedMotion, isPhone } from "@/lib/gsap";
+import { cv } from "@/lib/cv";
 import { useClothScene } from "@/lib/use-cloth-scene";
 import type { ClothScene } from "@/components/fx/cloth/ClothScene";
 import { FABRICS, type FabricId } from "@/content/fabrics";
@@ -20,10 +21,10 @@ export function FabricReel() {
   const vid = useRef<HTMLVideoElement>(null);
   const [load, setLoad] = useState(false);
 
-  // Only fetch the film when the section approaches.
+  // Only fetch the film when the section approaches, and never on phones (they keep the poster).
   useEffect(() => {
     const el = root.current;
-    if (!el || prefersReducedMotion()) return;
+    if (!el || prefersReducedMotion() || isPhone()) return;
     const io = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) setLoad(true);
@@ -68,8 +69,8 @@ export function FabricReel() {
   const row = "LINEN · WOOL · SELVEDGE DENIM · MERINO · SUEDE · POPLIN · CANVAS · ";
 
   return (
-    <section ref={root} className="theme-char relative overflow-hidden" aria-labelledby="fabric-title">
-      <div className="relative h-[80svh] min-h-[32rem] overflow-hidden md:h-[100svh]">
+    <section ref={root} {...cv("fabric")} className="theme-char relative overflow-hidden" aria-labelledby="fabric-title">
+      <div className="relative aspect-[4/5] overflow-hidden md:aspect-auto md:h-[100svh] md:min-h-[32rem]">
         <Image src="/video/fabric-poster.jpg" alt="" fill sizes="100vw" className="object-cover opacity-70" />
         {load && (
           <video ref={vid} className="absolute inset-0 h-full w-full object-cover opacity-70" src="/video/fabric.mp4" muted loop playsInline preload="none" poster="/video/fabric-poster.jpg" aria-hidden="true" />
@@ -87,7 +88,7 @@ export function FabricReel() {
         </div>
         <div className="container-x absolute inset-x-0 bottom-0 pb-10">
           <h2 id="fabric-title" className="t-mono text-bone/85">
-            ( 05 ) Cloth first
+            ( 06 ) Cloth first
           </h2>
           <p className="mt-2 max-w-md text-bone/90">We buy fabric before we design. If a cloth doesn&apos;t get better with ten years of wear, it doesn&apos;t make the table.</p>
         </div>
@@ -195,7 +196,7 @@ function SwatchTable() {
 
   return (
     <div className="hidden grid-cols-12 items-center gap-12 lg:grid">
-      <div ref={host} className="relative col-span-7 aspect-[6/5] [mask-image:radial-gradient(ellipse_72%_70%_at_50%_46%,#000_62%,transparent_100%)]">
+      <div ref={host} className="relative col-span-7 aspect-[6/5] [mask-image:radial-gradient(ellipse_50%_52%_at_50%_47%,#000_58%,transparent_100%)]">
         <picture key={fabric}>
           <source type="image/avif" srcSet={still(active.still, "avif")} sizes="58vw" />
           <img

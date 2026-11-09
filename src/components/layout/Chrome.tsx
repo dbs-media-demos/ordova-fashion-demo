@@ -172,9 +172,25 @@ export function LiveRegion() {
 /** "Concept site by Scale by Noon" pill (dismissible). */
 export function DemoBadge() {
   const [hidden, setHidden] = useState(false);
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    // Appear once the visitor starts scrolling, so it never sits on the hero's buttons.
+    const onScroll = () => window.scrollY > window.innerHeight * 0.6 && setShown(true);
+    const raf = requestAnimationFrame(onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
   if (hidden) return null;
   return (
-    <div className="fixed bottom-[4.6rem] left-3 z-[90] flex items-center gap-1 rounded-full bg-char/90 py-1 pl-4 pr-1 text-bone shadow-lg backdrop-blur md:bottom-4 md:left-auto md:right-4">
+    <div
+      className={clsx(
+        "fixed bottom-[4.6rem] left-3 z-[90] flex items-center gap-1 rounded-full bg-char py-1 pl-4 pr-1 text-bone shadow-lg transition-[opacity,translate] duration-700 md:bottom-4 md:left-auto md:right-4",
+        shown ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0 focus-within:pointer-events-auto focus-within:translate-y-0 focus-within:opacity-100",
+      )}
+    >
       <a href={agencyUrl} target="_blank" rel="noopener" className="t-mono py-2 text-[0.62rem] hover:text-cobalt-lt">
         Concept site by Scale by Noon ↗
       </a>

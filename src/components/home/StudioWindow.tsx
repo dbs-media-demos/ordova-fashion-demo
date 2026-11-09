@@ -99,7 +99,7 @@ export function StudioWindow() {
           <div className="container-x absolute inset-0 flex flex-col justify-between pb-24 pt-[calc(var(--header-h)+2rem)] md:pb-14">
             <div className="flex items-start justify-between gap-6">
               <h2 id="studio-title" className="t-mono text-bone/85">
-                ( 04 ) How it&apos;s made — the studio
+                ( 05 ) How it&apos;s made — the studio
               </h2>
               <Link href="/studio" className="btn btn-light btn-sm hidden shrink-0 sm:inline-flex">
                 Visit the studio page <IconArrow size={14} />
@@ -139,7 +139,7 @@ function PhoneStudio() {
       <div className="container-x flex items-end justify-between gap-4">
         <div>
           <h2 id="studio-title-ph" className="t-mono text-bone/85">
-            ( 04 ) How it&apos;s made — the studio
+            ( 05 ) How it&apos;s made — the studio
           </h2>
           <p className="mt-3 font-display text-[2.4rem] font-extrabold uppercase leading-[0.86] tracking-[-0.035em]">
             Step into

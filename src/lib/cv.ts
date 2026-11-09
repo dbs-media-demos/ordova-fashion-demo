@@ -12,9 +12,11 @@ const H = {
   newin: ["calc(306px + 80vw)", "calc(306px + 80vw)", "calc(306px + 80vw)"],
   wardrobes: ["647px", "calc(245px + 118vw)", "calc(245px + 118vw)"],
   studio: ["727px", "757px", "771px"],
-  archive: ["734px", "767px", "766px"],
+  archive: ["745px", "767px", "766px"],
   deck: ["606px", "calc(350px + 80vw)", "655px"],
   visit: ["850px", "892px", "895px"],
+  worn: ["calc(1556px - 70.4vw)", "calc(1556px - 70.4vw)", "calc(1556px - 70.4vw)"],
+  fabric: ["1231px", "calc(580px + 190vw)", "calc(580px + 190vw)"],
   footer: ["1439px", "calc(1320px + 11.4vw)", "calc(1320px + 11.4vw)"],
 } as const;
 
