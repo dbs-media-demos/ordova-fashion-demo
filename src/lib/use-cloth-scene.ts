@@ -63,7 +63,7 @@ export function useClothScene({ mode, canvas, host, fabric, attach, holdQueue }:
 
     const cancel = after3DGate(() =>
       warm3D(async () => {
-        const { createClothScene, NoGpuError } = await import("@/components/fx/cloth/ClothScene");
+        const { createClothScene, NoGpuError, SlowCpuError } = await import("@/components/fx/cloth/ClothScene");
         const cv = canvas.current;
         const el = host.current;
         if (disposed || !cv || !el) return;
@@ -76,7 +76,8 @@ export function useClothScene({ mode, canvas, host, fabric, attach, holdQueue }:
             onSlow: (fps, worst, work) => mark3DOff(`${mode}: ${Math.round(fps)} fps, worst frame ${Math.round(worst)} ms, ${work.toFixed(1)} ms work`),
           });
         } catch (e) {
-          if (e instanceof NoGpuError) mark3DOff(e.message);
+          performance.mark(`3d:${mode}:failed`, { detail: String(e) });
+          if (e instanceof NoGpuError || e instanceof SlowCpuError) mark3DOff(e.message);
           return; // the still stays
         }
         if (disposed || !can3D()) return h.dispose();

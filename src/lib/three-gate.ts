@@ -111,6 +111,8 @@ export function warm3D(task: () => Promise<unknown>) {
   queue = queue.then(idle).then(() => (can3D() ? task() : undefined)).catch(() => {});
 }
 
-/** Let the browser breathe between the heavy steps of building a scene. */
+/** Let the browser breathe between the heavy steps of building a scene; resolves with the idle time it got. */
 export const yieldIdle = () =>
-  new Promise<void>((r) => (typeof window.requestIdleCallback === "function" ? window.requestIdleCallback(() => r(), { timeout: 120 }) : window.setTimeout(r, 0)));
+  new Promise<IdleDeadline | undefined>((r) =>
+    typeof window.requestIdleCallback === "function" ? window.requestIdleCallback(r, { timeout: 120 }) : window.setTimeout(() => r(undefined), 0),
+  );

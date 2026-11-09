@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { Cloth, type Feel } from "./sim";
-import { paint, type WeaveKind } from "./weave";
+import { paint, painting, type Painted, type WeaveKind } from "./weave";
 import type { FabricId } from "@/content/fabrics";
 
 /**
@@ -42,18 +42,25 @@ export type ClothScene = {
 export type Opts = {
   mode: Mode;
   fabric?: FabricId;
-  pause?: () => Promise<void>;
+  /** Wait for the browser's idle time; the deadline (if any) says how much of it there is. */
+  pause?: () => Promise<IdleDeadline | void | undefined>;
   onSlow?: (fps: number, worst: number, work: number) => void;
 };
 
 export class NoGpuError extends Error {}
+/** The CPU can't fit a simulation step and a draw into a 60 Hz frame: found while settling, before anyone sees a frame. */
+export class SlowCpuError extends Error {}
 
 const SOFTWARE_GL = /swiftshader|llvmpipe|softpipe|software|basic render|microsoft basic/i;
 const PROBE_MS = 2000;
 const PROBE_FPS = 45;
 const PROBE_WORST = 100;
 const PROBE_WORK = 9;
+/** A settle step slower than this (ms, after warm-up) can't hold 60 fps: the build stops and the still stays. */
+const SLOW_STEP = 12;
 const STEP = 1 / 60;
+/** The longest the build holds the main thread at once while the still is up (ms). */
+const SLICE_MS = 8;
 /** Simulated seconds before the first frame, so the folds have settled (and match the still). */
 const SETTLE = 4;
 
@@ -94,12 +101,40 @@ function gpuRenderer(canvas: HTMLCanvasElement) {
   return renderer;
 }
 
+/**
+ * The soft room the brass and the sheen reflect, as an environment map. PMREMGenerator compiles
+ * its shaders on the main thread the moment it draws (~300 ms in one block), so a dry run first
+ * hands every draw to compileAsync, the GPU links them in parallel, and the real run finds them
+ * all ready. Same programs, same map.
+ */
+async function roomEnvironment(renderer: THREE.WebGLRenderer) {
+  const pm = new THREE.PMREMGenerator(renderer);
+  const room = new RoomEnvironment();
+  const render = renderer.render;
+  const linking: Promise<unknown>[] = [];
+  renderer.render = (s, c) => void linking.push(renderer.compileAsync(s, c));
+  try {
+    pm.fromScene(room, 0.04).dispose();
+  } finally {
+    renderer.render = render;
+  }
+  await Promise.all(linking);
+  const env = pm.fromScene(room, 0.04).texture;
+  room.dispose();
+  pm.dispose();
+  return env;
+}
+
 /** Painted maps are shared by every scene on the page (hero and swatch both use linen and wool). */
 const painted = new Map<string, { color: THREE.DataTexture; normal: THREE.DataTexture; users: number }>();
+const tile = (kind: WeaveKind) => [kind, kind === "plaster" ? 512 : 256, kind === "plaster" ? 1 : 24, kind.length * 7 + 3] as const;
+/** Tiles painted ahead in idle time, waiting for `maps` to turn them into textures. */
+const prepainted = new Map<WeaveKind, Painted>();
 function maps(kind: WeaveKind, aniso: number) {
   let m = painted.get(kind);
   if (!m) {
-    const p = paint(kind, kind === "plaster" ? 512 : 256, kind === "plaster" ? 1 : 24, kind.length * 7 + 3);
+    const p = prepainted.get(kind) ?? paint(...tile(kind));
+    prepainted.delete(kind);
     const tex = (d: ImageData, srgb: boolean) => {
       const t = new THREE.DataTexture(d.data, p.size, p.size);
       t.wrapS = t.wrapT = THREE.RepeatWrapping;
@@ -239,6 +274,21 @@ export async function createClothScene(canvas: HTMLCanvasElement, opts: Opts): P
   const { mode } = opts;
   const pause = opts.pause ?? (() => Promise.resolve());
   const t0 = performance.now();
+  /** Run a job's steps in the browser's idle time: as many as fit, never more than SLICE_MS at once. */
+  const idleRun = async <T>(g: Generator<unknown, T>) => {
+    let until = 0;
+    let cost = 0;
+    for (;;) {
+      if (performance.now() + cost > until) {
+        const d = await pause();
+        until = performance.now() + Math.min(SLICE_MS, d ? d.timeRemaining() - 1 : SLICE_MS);
+      }
+      const a = performance.now();
+      const r = g.next();
+      cost = performance.now() - a;
+      if (r.done) return r.value;
+    }
+  };
   const renderer = gpuRenderer(canvas);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -254,12 +304,11 @@ export async function createClothScene(canvas: HTMLCanvasElement, opts: Opts): P
   const camera = new THREE.PerspectiveCamera(mode === "hero" ? 27 : 28, 2, 0.1, 60);
 
   // a soft room for the brass and the sheen to reflect, very low
-  const pm = new THREE.PMREMGenerator(renderer);
-  const room = new RoomEnvironment();
-  const env = pm.fromScene(room, 0.04).texture;
-  room.dispose();
-  pm.dispose();
+  const env = await roomEnvironment(renderer);
   scene.environment = env;
+  // the weaves this scene needs, painted a row at a time (the textures are made from them below)
+  const kinds: WeaveKind[] = mode === "hero" ? ["plaster", "linen", "wool"] : ["plaster", "linen", "wool", "denim", "knit"];
+  for (const k of kinds) if (!painted.has(k) && !prepainted.has(k)) prepainted.set(k, await idleRun(painting(...tile(k))));
   scene.environmentIntensity = mode === "hero" ? 0.18 : 0.22;
   await pause();
 
@@ -589,6 +638,15 @@ export async function createClothScene(canvas: HTMLCanvasElement, opts: Opts): P
   };
   document.addEventListener("visibilitychange", onVis);
 
+  const free = () => {
+    document.removeEventListener("visibilitychange", onVis);
+    disposables.forEach((d) => d.dispose());
+    weaves.forEach(releaseMaps);
+    env.dispose();
+    renderer.dispose();
+    renderer.forceContextLoss();
+  };
+
   const resize = () => {
     const w = canvas.clientWidth,
       h = canvas.clientHeight;
@@ -601,10 +659,26 @@ export async function createClothScene(canvas: HTMLCanvasElement, opts: Opts): P
     if (ready && !raf) renderer.render(scene, camera);
   };
 
-  // settle the folds before anyone sees them, in idle-sized slices (same steps → same as the still)
-  for (let s = 0; s < SETTLE / STEP; s++) {
-    for (const h of hung) h.cloth.step(STEP);
-    if (s % 30 === 29) await pause();
+  // settle the folds before anyone sees them (same steps → same as the still), in idle slices so
+  // the page around the still stays smooth
+  // the same steps time the CPU: one that can't fit a step and a draw into a frame stops here
+  const stepMs = await idleRun(
+    (function* () {
+      let spent = 0;
+      for (let s = 0; s < SETTLE / STEP; s++) {
+        const a = performance.now();
+        for (const h of hung) h.cloth.step(STEP);
+        if (s >= 5) spent += performance.now() - a;
+        if (s === 24 && spent / 20 > SLOW_STEP) return spent / 20;
+        yield;
+      }
+      return spent / (SETTLE / STEP - 5);
+    })(),
+  );
+  performance.mark(`3d:${mode}:settled`, { detail: { stepMs: +stepMs.toFixed(2) } });
+  if (stepMs > SLOW_STEP) {
+    free();
+    throw new SlowCpuError(`${mode}: ${stepMs.toFixed(1)} ms per cloth step`);
   }
   hung.forEach((h) => h.sync());
   resize();
@@ -746,12 +820,7 @@ export async function createClothScene(canvas: HTMLCanvasElement, opts: Opts): P
       disposed = true;
       settleProbe(true);
       cancelAnimationFrame(raf);
-      document.removeEventListener("visibilitychange", onVis);
-      disposables.forEach((d) => d.dispose());
-      weaves.forEach(releaseMaps);
-      env.dispose();
-      renderer.dispose();
-      renderer.forceContextLoss();
+      free();
     },
   };
   return api;

@@ -31,8 +31,8 @@ function threadNoise(count: number, knots: number, seed: number) {
   };
 }
 
-/** Tileable value-noise fbm on a grid of `cells`. */
-function fbm(size: number, cells: number, octaves: number, seed: number) {
+/** Tileable value-noise fbm on a grid of `cells` (yields after every row). */
+function* fbm(size: number, cells: number, octaves: number, seed: number) {
   const out = new Float32Array(size * size);
   let amp = 1,
     total = 0,
@@ -40,7 +40,7 @@ function fbm(size: number, cells: number, octaves: number, seed: number) {
   const r = rng(seed);
   for (let o = 0; o < octaves; o++) {
     const g = Float32Array.from({ length: c * c }, () => r());
-    for (let y = 0; y < size; y++)
+    for (let y = 0; y < size; y++, yield)
       for (let x = 0; x < size; x++) {
         const fx = (x / size) * c,
           fy = (y / size) * c;
@@ -77,6 +77,15 @@ const PALETTES: Record<WeaveKind, Pal> = {
  * near-white (the material colour tints them) except denim, whose two yarn colours are the look.
  */
 export function paint(kind: WeaveKind, size = 512, threads = 48, seed = 7): Painted {
+  const g = painting(kind, size, threads, seed);
+  for (;;) {
+    const r = g.next();
+    if (r.done) return r.value;
+  }
+}
+
+/** `paint`, a row at a time: each `next()` is a fraction of a millisecond, so it can run in idle slices. */
+export function* painting(kind: WeaveKind, size = 512, threads = 48, seed = 7): Generator<void, Painted> {
   const H = new Float32Array(size * size);
   const C = new Float32Array(size * size * 3);
   const pal = PALETTES[kind];
@@ -84,13 +93,13 @@ export function paint(kind: WeaveKind, size = 512, threads = 48, seed = 7): Pain
     B = hex(pal.b ?? pal.a).map((v) => v / 255);
   const warpN = threadNoise(threads, 6, seed),
     weftN = threadNoise(threads, 6, seed + 1);
-  const fine = kind === "plaster" || kind === "wool" ? fbm(size, 16, 4, seed + 2) : null;
-  const broad = kind === "plaster" ? fbm(size, 4, 4, seed + 3) : null;
+  const fine = kind === "plaster" || kind === "wool" ? yield* fbm(size, 16, 4, seed + 2) : null;
+  const broad = kind === "plaster" ? yield* fbm(size, 4, 4, seed + 3) : null;
   const r = rng(seed + 9);
   const fuzz = Float32Array.from({ length: size * size }, () => r());
   const prof = (f: number) => Math.sqrt(Math.max(0, 1 - (2 * f - 1) ** 2));
 
-  for (let y = 0; y < size; y++)
+  for (let y = 0; y < size; y++, yield)
     for (let x = 0; x < size; x++) {
       const p = y * size + x;
       const u = (x / size) * threads,
@@ -149,7 +158,7 @@ export function paint(kind: WeaveKind, size = 512, threads = 48, seed = 7): Pain
   const color = new ImageData(size, size);
   const normal = new ImageData(size, size);
   const k = kind === "plaster" ? 2.2 : kind === "knit" ? 3.2 : 4.5;
-  for (let y = 0; y < size; y++)
+  for (let y = 0; y < size; y++, yield)
     for (let x = 0; x < size; x++) {
       const p = y * size + x;
       const l = H[y * size + ((x - 1 + size) % size)],
