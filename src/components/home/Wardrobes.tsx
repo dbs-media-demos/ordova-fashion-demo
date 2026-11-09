@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { gsap, useIdleGSAP, prefersReducedMotion, belowFold } from "@/lib/gsap";
 import { IconArrowUpRight } from "@/components/ui/Icons";
+import { cv } from "@/lib/cv";
 
 const PANELS = [
   { t: "Women", k: "Dresses · shirts · wide trousers · coats", href: "/shop?dept=women", img: "/images/ed/wardrobe-women.jpg", n: "14 pieces" },
@@ -46,8 +47,8 @@ export function Wardrobes() {
   }, root);
 
   return (
-    <section ref={root} className="bg-bone py-24 md:py-36" aria-labelledby="wardrobes-title">
-      <div className="container-x mb-12 flex flex-wrap items-end justify-between gap-6">
+    <section ref={root} {...cv("wardrobes")} className="bg-bone py-16 md:py-36" aria-labelledby="wardrobes-title">
+      <div className="container-x mb-8 flex flex-wrap items-end justify-between gap-6 md:mb-12">
         <div>
           <p className="t-mono text-muted">( 03 ) Three wardrobes</p>
           <h2 id="wardrobes-title" className="t-h2 mt-3 max-w-[14ch]">
@@ -56,12 +57,12 @@ export function Wardrobes() {
         </div>
         <p className="max-w-sm text-muted">Womenswear, menswear and the objects that finish them — designed together so everything on the rail works with everything else.</p>
       </div>
-      <div className="container-x group/w grid gap-4 md:flex md:h-[78vh] md:gap-3">
+      <div className="container-x group/w no-scrollbar grid gap-4 max-md:flex max-md:snap-x max-md:snap-mandatory max-md:gap-3 max-md:overflow-x-auto max-md:scroll-px-[var(--gutter)] md:flex md:h-[78vh] md:gap-3">
         {PANELS.map((p) => (
-          <div key={p.t} data-col className="md:flex-1 md:transition-[flex-grow] md:duration-700 md:ease-[cubic-bezier(0.16,1,0.3,1)] md:hover:flex-[1.6]">
-            <Link href={p.href} data-panel className="theme-char group relative block h-[70vh] overflow-hidden rounded-[2px] md:h-[78vh]" data-cursor="Shop">
+          <div key={p.t} data-col className="max-md:w-[80vw] max-md:shrink-0 max-md:snap-start md:flex-1 md:transition-[flex-grow] md:duration-700 md:ease-[cubic-bezier(0.16,1,0.3,1)] md:hover:flex-[1.6]">
+            <Link href={p.href} data-panel className="theme-char group relative block h-[70vh] overflow-hidden rounded-[2px] max-md:h-[min(64svh,118vw)] md:h-[78vh]" data-cursor="Shop">
               <div data-img className="absolute -inset-y-[10%] inset-x-0">
-                <Image src={p.img} alt="" fill sizes="(min-width: 768px) 40vw, 100vw" className="object-cover transition-transform duration-[1.4s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]" />
+                <Image src={p.img} alt="" fill sizes="(min-width: 768px) 40vw, 80vw" className="object-cover transition-transform duration-[1.4s] ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]" />
               </div>
               <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgb(21_21_19/0.72))]" />
               <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 md:p-7">

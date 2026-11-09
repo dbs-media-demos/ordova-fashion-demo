@@ -9,7 +9,7 @@ import { Sheet, SheetHeader } from "@/components/ui/Sheet";
 import { categories } from "@/content/taxonomy";
 import { colorFamilies, facetValues } from "@/content/helpers";
 import { EMPTY, PRICE_BANDS, SORTS, activeCount, applyFilters, parseFilters, serializeFilters, type Filters } from "@/lib/filters";
-import { gsap, loadFlip, onIdle, prefersReducedMotion, ScrollTrigger } from "@/lib/gsap";
+import { gsap, isPhone, loadFlip, loadGsap, onIdle, prefersReducedMotion, ScrollTrigger } from "@/lib/gsap";
 import { IconChevron, IconClose } from "@/components/ui/Icons";
 
 type FlipT = Awaited<ReturnType<typeof loadFlip>>;
@@ -103,9 +103,15 @@ export function ShopView({ products, hide = [], label, eagerCards }: Props) {
 
   // Cards below the fold wipe up in staggered batches the first time.
   useEffect(() => {
-    if (prefersReducedMotion()) return;
-    let triggers: ScrollTrigger[] = [];
-    const cancel = onIdle(() => {
+    // Desktop only: phones get the plain grid.
+    if (prefersReducedMotion() || isPhone()) return;
+    let triggers: InstanceType<typeof ScrollTrigger>[] = [];
+    let dead = false;
+    let cancel = () => {};
+    void loadGsap().then(() => {
+      if (!dead) cancel = onIdle(wipe);
+    });
+    const wipe = () => {
       const items = Array.from(grid.current?.querySelectorAll<HTMLElement>("[data-flip-id]:not([hidden]) [data-wipe]") ?? []).filter(
         (el) => el.getBoundingClientRect().top > window.innerHeight,
       );
@@ -115,8 +121,9 @@ export function ShopView({ products, hide = [], label, eagerCards }: Props) {
         once: true,
         onEnter: (b) => gsap.to(b, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.2, ease: "expo.inOut", stagger: 0.08, clearProps: "clipPath" }),
       });
-    });
+    };
     return () => {
+      dead = true;
       cancel();
       triggers.forEach((t) => t.kill());
     };
@@ -211,9 +218,10 @@ export function ShopView({ products, hide = [], label, eagerCards }: Props) {
         <p className="sr-only" aria-live="polite">
           {visible.length} products shown
         </p>
-        <div ref={grid} className="relative grid grid-cols-2 gap-x-3 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5">
+        {/* phones lay out only the cards near the screen; --cv is a card's real height (scripts/section-heights.mjs /shop) */}
+        <div ref={grid} className="relative grid grid-cols-2 gap-x-3 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-5" style={{ "--cv": "calc(62.5vw + 64px)" } as React.CSSProperties}>
           {visible.map((p, i) => (
-            <div key={p.slug} data-flip-id={p.slug}>
+            <div key={p.slug} data-flip-id={p.slug} data-cv={i < 4 ? undefined : "card"}>
               <div data-wipe>
                 <ProductCard product={p} eager={eagerCards && i < 4} />
               </div>

@@ -6,6 +6,7 @@ import type { Product } from "@/lib/commerce/types";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { gsap, ScrollTrigger, useIdleGSAP, prefersReducedMotion } from "@/lib/gsap";
 import { IconArrow } from "@/components/ui/Icons";
+import { cv } from "@/lib/cv";
 
 /**
  * Scene 3 — New in: a horizontal track driven by vertical scroll (desktop).
@@ -23,7 +24,7 @@ export function NewInTrack({ products }: { products: Product[] }) {
     const tr = track.current;
     if (!sec || !tr || prefersReducedMotion()) return;
     const mm = gsap.matchMedia();
-    mm.add("(min-width: 1024px) and (hover: hover)", () => {
+    mm.add("(min-width: 1024px) and (hover: hover) and (pointer: fine)", () => {
       const dist = () => tr.scrollWidth - window.innerWidth;
       const setH = () => (sec.style.height = `${dist() + window.innerHeight}px`);
       setH();
@@ -56,9 +57,9 @@ export function NewInTrack({ products }: { products: Product[] }) {
   }, root);
 
   return (
-    <section ref={root} className="relative bg-bone" aria-labelledby="newin-title">
-      <div className="lg:sticky lg:top-0 lg:flex lg:h-[100svh] lg:flex-col lg:justify-center lg:overflow-hidden">
-        <div className="container-x flex items-end justify-between gap-6 pt-24 lg:pt-16">
+    <section ref={root} {...cv("newin")} className="relative bg-bone" aria-labelledby="newin-title">
+      <div className="deskl:sticky deskl:top-0 deskl:flex deskl:h-[100svh] deskl:flex-col deskl:justify-center deskl:overflow-hidden">
+        <div className="container-x flex items-end justify-between gap-6 pt-16 md:pt-24 deskl:pt-16">
           <div>
             <p className="t-mono text-muted">( 02 ) Just landed</p>
             <h2 ref={title} id="newin-title" className="mt-3 whitespace-nowrap font-display text-[clamp(3rem,10vw,10rem)] font-extrabold uppercase leading-[0.8] tracking-[-0.04em]">
@@ -72,17 +73,17 @@ export function NewInTrack({ products }: { products: Product[] }) {
         <div
           ref={track}
           data-cursor="Drag"
-          className="no-scrollbar mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-[var(--gutter)] pb-6 lg:snap-none lg:overflow-visible lg:pb-0"
+          className="no-scrollbar mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto px-[var(--gutter)] pb-6 deskl:snap-none deskl:overflow-visible deskl:pb-0"
         >
           {products.map((p, i) => (
-            <div key={p.slug} data-card className="w-[72vw] shrink-0 snap-start sm:w-[42vw] lg:w-[23vw]">
-              <ProductCard product={p} sizes="(min-width: 1024px) 23vw, (min-width: 640px) 42vw, 72vw" />
+            <div key={p.slug} data-card className="w-[64vw] shrink-0 snap-start sm:w-[42vw] deskl:w-[23vw]">
+              <ProductCard product={p} sizes="(min-width: 1024px) 23vw, (min-width: 640px) 42vw, 64vw" />
               <p className="t-mono mt-2 text-[0.6rem] text-muted">N° {String(i + 1).padStart(2, "0")}</p>
             </div>
           ))}
           <Link
             href="/collections/new-in"
-            className="theme-char grid aspect-[4/5] w-[60vw] shrink-0 snap-start place-items-center rounded-[2px] p-8 text-center sm:w-[36vw] lg:w-[20vw]"
+            className="theme-char grid aspect-[4/5] w-[56vw] shrink-0 snap-start place-items-center rounded-[2px] p-8 text-center sm:w-[36vw] deskl:w-[20vw]"
           >
             <span>
               <span className="block font-display text-3xl font-extrabold uppercase leading-none">See every new piece</span>
@@ -92,7 +93,7 @@ export function NewInTrack({ products }: { products: Product[] }) {
             </span>
           </Link>
         </div>
-        <div className="container-x mt-8 hidden lg:block">
+        <div className="container-x mt-8 hidden deskl:block">
           <div className="h-px bg-line">
             <div ref={bar} className="h-px origin-left scale-x-0 bg-char" />
           </div>

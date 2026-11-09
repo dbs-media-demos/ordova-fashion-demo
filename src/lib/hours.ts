@@ -13,9 +13,13 @@ export const fmtTime = (t: string) => {
   return `${hh}${m ? `:${String(m).padStart(2, "0")}` : ""} ${h < 12 ? "am" : "pm"}`;
 };
 
+/** Built once, on first use (a time-zone formatter is slow to create on a phone). */
+let dallasFmt: Intl.DateTimeFormat | undefined;
+
 /** Current weekday + minutes in Dallas (America/Chicago), independent of the visitor's timezone. */
 function dallasNow(now = new Date()) {
-  const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(now);
+  dallasFmt ??= new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  const parts = dallasFmt.formatToParts(now);
   const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "0";
   const day = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(get("weekday"));
   return { day, min: Number(get("hour")) * 60 + Number(get("minute")) };

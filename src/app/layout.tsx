@@ -6,7 +6,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBar } from "@/components/layout/MobileBar";
 import { LazyOverlays } from "@/components/layout/Overlays";
-import { Cursor, DemoBadge, LiveRegion, PageTransition, SmoothScroll } from "@/components/layout/Chrome";
+import { Cursor, DemoBadge, LiveRegion, PageTransition, PhoneRise, SmoothScroll } from "@/components/layout/Chrome";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { storeSchema, websiteSchema } from "@/lib/schema";
 
@@ -38,6 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <JsonLd data={storeSchema()} />
         <JsonLd data={websiteSchema()} />
         <SmoothScroll />
+        <PhoneRise />
         <Header />
         <PageTransition>
           <main id="main" className="min-h-[60vh]">

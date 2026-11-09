@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import clsx from "clsx";
 import { Ring } from "@/components/brand/Logo";
 import { money } from "@/lib/format";
-import { gsap, prefersReducedMotion } from "@/lib/gsap";
+import { gsap, prefersReducedMotion, withGsap } from "@/lib/gsap";
 import { IconCheck } from "@/components/ui/Icons";
 
 const AMOUNTS = [50, 100, 150, 250, 500];
@@ -24,14 +24,14 @@ export function GiftCardBuilder() {
     const r = card.current!.getBoundingClientRect();
     const x = (e.clientX - r.left) / r.width - 0.5;
     const y = (e.clientY - r.top) / r.height - 0.5;
-    gsap.to(card.current, { rotateY: x * 16, rotateX: -y * 12, duration: 0.6, ease: "power3.out", transformPerspective: 900 });
+    withGsap(() => gsap.to(card.current, { rotateY: x * 16, rotateX: -y * 12, duration: 0.6, ease: "power3.out", transformPerspective: 900 }));
   };
 
   const bg = finish === "char" ? "bg-char" : finish === "olive" ? "bg-olive" : "bg-cobalt";
 
   return (
     <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-      <div className="[perspective:900px]" onPointerMove={tilt} onPointerLeave={() => gsap.to(card.current, { rotateX: 0, rotateY: 0, duration: 0.8 })}>
+      <div className="[perspective:900px]" onPointerMove={tilt} onPointerLeave={() => withGsap(() => gsap.to(card.current, { rotateX: 0, rotateY: 0, duration: 0.8 }))}>
         <div ref={card} className={clsx("relative mx-auto flex aspect-[1.586] w-full max-w-md flex-col justify-between overflow-hidden rounded-2xl p-6 text-bone shadow-2xl transition-colors duration-700 md:p-8", bg)}>
           <Ring className="absolute -right-16 -top-16 h-64 w-64 text-white/10" />
           <div className="flex items-start justify-between">

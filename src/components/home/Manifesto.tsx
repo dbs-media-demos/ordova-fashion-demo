@@ -1,12 +1,13 @@
 import { Counter, Marquee, ScrubWords } from "@/components/ui/Reveal";
 import { Ring } from "@/components/brand/Logo";
+import { cv } from "@/lib/cv";
 
 const PROMISES = ["Free shipping over $150", "Free 30-day returns", "Pickup in Bishop Arts in 2 hours", "Free hemming in store", "Gift wrap on the house"];
 
 /** Scene 2 — the manifesto: words light up as you read, then four honest numbers. */
 export function Manifesto() {
   return (
-    <section className="theme-sand relative overflow-hidden" aria-labelledby="manifesto-title">
+    <section {...cv("manifesto")} className="theme-sand relative overflow-hidden" aria-labelledby="manifesto-title">
       <div className="border-b border-line py-4">
         <Marquee duration={36}>
           {PROMISES.map((p) => (
@@ -17,7 +18,7 @@ export function Manifesto() {
           ))}
         </Marquee>
       </div>
-      <div className="container-x grid gap-12 py-24 md:grid-cols-12 md:py-36">
+      <div className="container-x grid gap-10 py-16 md:grid-cols-12 md:gap-12 md:py-36">
         <h2 id="manifesto-title" className="t-mono text-muted md:col-span-3">
           ( 01 ) The idea
         </h2>

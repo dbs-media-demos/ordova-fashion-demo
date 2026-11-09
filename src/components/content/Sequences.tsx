@@ -38,11 +38,11 @@ export function StackSequence({ steps, label }: { steps: Step[]; label: string }
   }, root);
 
   return (
-    <section ref={root} className="relative motion-safe:h-[500svh]" aria-label={label}>
-      <div className="theme-char overflow-hidden motion-safe:sticky motion-safe:top-0 motion-safe:h-[100svh]">
+    <section ref={root} className="relative desk:h-[500svh]" aria-label={label}>
+      <div className="theme-char overflow-hidden desk:sticky desk:top-0 desk:h-[100svh]">
         <div className="container-x grid h-full gap-10 py-24 md:grid-cols-12 md:items-center md:py-0">
           <div className="relative md:col-span-5">
-            <div className="flex items-start gap-4">
+            <div className="flex items-start gap-4 ph:hidden">
               <div className="h-[clamp(5rem,13vw,12rem)] overflow-hidden" aria-hidden="true">
                 <div data-roll className="font-display text-[clamp(5rem,13vw,12rem)] font-extrabold leading-none tracking-[-0.05em] text-cobalt-lt">
                   {steps.map((s) => (
@@ -54,9 +54,12 @@ export function StackSequence({ steps, label }: { steps: Step[]; label: string }
               </div>
               <span className="t-mono mt-3 text-bone/70">/ {String(steps.length).padStart(2, "0")}</span>
             </div>
-            <div className="relative mt-6 min-h-[15rem]">
+            <div className="relative mt-6 min-h-[15rem] ph:mt-0 ph:min-h-0">
               {steps.map((s, i) => (
-                <div key={s.t} data-text className={clsx("motion-safe:absolute motion-safe:inset-x-0 motion-safe:top-0", i > 0 && "mt-10 motion-safe:mt-0")}>
+                <div key={s.t} data-text className={clsx("desk:absolute desk:inset-x-0 desk:top-0", i > 0 && "mt-10 desk:mt-0")}>
+                  <p className="t-mono mb-2 hidden text-cobalt-lt ph:block">
+                    Step {s.n} / {String(steps.length).padStart(2, "0")}
+                  </p>
                   <h3 className="font-display text-[clamp(2.4rem,5vw,4.5rem)] font-extrabold uppercase leading-[0.9] tracking-[-0.03em]">{s.t}</h3>
                   <p className="mt-4 max-w-md text-bone/85">{s.d}</p>
                   {s.extra && <p className="t-mono mt-4 text-bone/60">{s.extra}</p>}
@@ -64,9 +67,9 @@ export function StackSequence({ steps, label }: { steps: Step[]; label: string }
               ))}
             </div>
           </div>
-          <div className="relative h-[52vh] md:col-span-6 md:col-start-7 md:h-[78vh]">
+          <div className="rail relative h-[52vh] ph:-mx-[var(--gutter)] ph:h-auto md:col-span-6 md:col-start-7 md:h-[78vh] ph:md:col-span-12 ph:md:col-start-1">
             {steps.map((s, i) => (
-              <div key={s.t} data-card className="absolute inset-0 overflow-hidden rounded-[3px] shadow-[0_40px_80px_-30px_rgb(0_0_0/0.7)]" style={{ zIndex: i + 1 }}>
+              <div key={s.t} data-card className="absolute inset-0 overflow-hidden rounded-[3px] shadow-[0_40px_80px_-30px_rgb(0_0_0/0.7)] ph:relative ph:aspect-[4/5] ph:w-[72vw] ph:max-w-[20rem]" style={{ zIndex: i + 1 }}>
                 <Image src={s.img} alt={`${s.t} — ${s.d}`} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
               </div>
             ))}
@@ -89,7 +92,7 @@ export function Timeline({ items, label }: { items: Moment[]; label: string }) {
     const tr = track.current;
     if (!sec || !tr || prefersReducedMotion()) return;
     const mm = gsap.matchMedia();
-    mm.add("(min-width: 1024px)", () => {
+    mm.add("(min-width: 1024px) and (hover: hover) and (pointer: fine)", () => {
       const dist = () => tr.scrollWidth - window.innerWidth + 80;
       const setH = () => (sec.style.height = `${dist() + window.innerHeight}px`);
       setH();
@@ -103,16 +106,16 @@ export function Timeline({ items, label }: { items: Moment[]; label: string }) {
 
   return (
     <section ref={root} className="relative bg-sand" aria-label={label}>
-      <div className="lg:sticky lg:top-0 lg:flex lg:h-[100svh] lg:flex-col lg:justify-center lg:overflow-hidden">
-        <div className="container-x py-16 lg:py-0">
+      <div className="deskl:sticky deskl:top-0 deskl:flex deskl:h-[100svh] deskl:flex-col deskl:justify-center deskl:overflow-hidden">
+        <div className="container-x py-16 deskl:py-0">
           <p className="t-mono text-muted">{label}</p>
-          <div className="mt-6 hidden h-px bg-line lg:block">
+          <div className="mt-6 hidden h-px bg-line deskl:block">
             <div data-progress className="h-px origin-left scale-x-0 bg-char" />
           </div>
         </div>
-        <ol ref={track} className="container-x flex flex-col gap-12 pb-20 lg:mt-10 lg:flex-row lg:gap-16 lg:pb-0">
+        <ol ref={track} className="container-x flex flex-col gap-12 pb-20 deskl:mt-10 deskl:flex-row deskl:gap-16 deskl:pb-0">
           {items.map((m) => (
-            <li key={m.y} className="lg:w-[30rem] lg:shrink-0">
+            <li key={m.y} className="deskl:w-[30rem] deskl:shrink-0">
               <p className="font-display text-[clamp(3.5rem,8vw,7rem)] font-extrabold leading-none tracking-[-0.05em]">{m.y}</p>
               {m.img && (
                 <div className="media relative mt-5 aspect-[16/10] overflow-hidden rounded-[2px]">
@@ -150,8 +153,8 @@ export function ZoomFrame({ img, alt, kicker, line }: { img: string; alt: string
       .fromTo(sec.querySelector("[data-line]"), { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.3 }, 0.65);
   }, root);
   return (
-    <section ref={root} className="relative motion-safe:h-[220svh]">
-      <div data-stage className="theme-char relative h-[100svh] overflow-hidden motion-safe:sticky motion-safe:top-0">
+    <section ref={root} className="relative desk:h-[220svh]">
+      <div data-stage className="theme-char relative h-[100svh] overflow-hidden desk:sticky desk:top-0">
         <div data-img className="absolute inset-0">
           <Image src={img} alt={alt} fill sizes="100vw" className="object-cover" />
           <div className="absolute inset-0 bg-[linear-gradient(0deg,rgb(21_21_19/0.75),transparent_55%)]" />

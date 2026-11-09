@@ -6,6 +6,7 @@ import Link from "next/link";
 import { gsap, useIdleGSAP, prefersReducedMotion, ScrollTrigger } from "@/lib/gsap";
 import { IconArrow } from "@/components/ui/Icons";
 import { STEPS } from "@/content/studio";
+import { cv } from "@/lib/cv";
 
 
 
@@ -71,19 +72,21 @@ export function StudioWindow() {
   }, root);
 
   return (
-    <section ref={root} className="relative motion-safe:h-[520svh]" aria-labelledby="studio-title">
-      <div ref={stage} className="theme-sand grain relative overflow-hidden motion-safe:sticky motion-safe:top-0 motion-safe:h-[100svh]">
+    <>
+    <PhoneStudio />
+    <section ref={root} className="relative ph:hidden desk:h-[520svh]" aria-labelledby="studio-title">
+      <div ref={stage} className="theme-sand grain relative overflow-hidden desk:sticky desk:top-0 desk:h-[100svh]">
         {/* the wall */}
-        <div data-wall className="pointer-events-none absolute inset-0 hidden flex-col items-center justify-between py-[12vh] motion-safe:flex">
+        <div data-wall className="pointer-events-none absolute inset-0 hidden flex-col items-center justify-between py-[12vh] desk:flex">
           <p className="font-display text-[clamp(1.9rem,8.4vw,8.5rem)] font-extrabold uppercase leading-none tracking-[-0.04em]">Step into</p>
           <p className="font-display text-[clamp(1.9rem,8.4vw,8.5rem)] font-extrabold uppercase leading-none tracking-[-0.04em]">the studio</p>
         </div>
-        <div data-frame className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[42%] w-[62%] -translate-x-1/2 -translate-y-1/2 rounded-[4px] outline outline-1 outline-offset-[10px] outline-char/40 motion-safe:block md:h-[50%] md:w-[30%]">
+        <div data-frame className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[42%] w-[62%] -translate-x-1/2 -translate-y-1/2 rounded-[4px] outline outline-1 outline-offset-[10px] outline-char/40 desk:block md:h-[50%] md:w-[30%]">
           <span className="t-mono absolute -bottom-9 left-0 whitespace-nowrap text-muted">Studio · 2nd floor, Bishop Arts</span>
         </div>
 
         {/* the window → full-bleed sequence */}
-        <div data-window className="theme-char relative h-[100svh] motion-safe:absolute motion-safe:inset-0 motion-safe:h-auto">
+        <div data-window className="theme-char relative h-[100svh] desk:absolute desk:inset-0 desk:h-auto">
           <div data-room className="absolute inset-0 overflow-hidden">
             <Image src="/images/ed/studio-room.jpg" alt="The Ordova studio upstairs: tables, dress forms and daylight" fill sizes="100vw" className="object-cover" />
           </div>
@@ -123,6 +126,50 @@ export function StudioWindow() {
             </ol>
           </div>
         </div>
+      </div>
+    </section>
+    </>
+  );
+}
+
+/** Phones and touch tablets: the same five steps as a swipe rail (no pinned zoom-through). */
+function PhoneStudio() {
+  return (
+    <section {...cv("studio")} className="theme-char hidden py-16 ph:block" aria-labelledby="studio-title-ph">
+      <div className="container-x flex items-end justify-between gap-4">
+        <div>
+          <h2 id="studio-title-ph" className="t-mono text-bone/85">
+            ( 04 ) How it&apos;s made — the studio
+          </h2>
+          <p className="mt-3 font-display text-[2.4rem] font-extrabold uppercase leading-[0.86] tracking-[-0.035em]">
+            Step into
+            <br />
+            the studio
+          </p>
+        </div>
+      </div>
+      <ol className="rail mt-8" aria-label="Steps">
+        <li className="w-[78vw] max-w-[22rem]">
+          <div className="media relative aspect-[4/5] overflow-hidden rounded-[3px]">
+            <Image src="/images/ed/studio-room.jpg" alt="The Ordova studio upstairs: tables, dress forms and daylight" fill sizes="(min-width: 640px) 22rem, 78vw" className="object-cover" />
+          </div>
+          <p className="t-mono mt-4 text-bone/70">Studio · 2nd floor, Bishop Arts</p>
+        </li>
+        {STEPS.map((s) => (
+          <li key={s.t} className="w-[78vw] max-w-[22rem]">
+            <div className="media relative aspect-[4/5] overflow-hidden rounded-[3px]">
+              <Image src={s.img} alt={`${s.t}: ${s.d}`} fill sizes="(min-width: 640px) 22rem, 78vw" className="object-cover" />
+            </div>
+            <p className="t-mono mt-4 text-cobalt-lt">Step {s.n} / 05</p>
+            <h3 className="mt-1 font-display text-[2rem] font-extrabold uppercase leading-[0.9] tracking-[-0.03em]">{s.t}</h3>
+            <p className="mt-2 text-[0.95rem] text-bone/85">{s.d}</p>
+          </li>
+        ))}
+      </ol>
+      <div className="container-x mt-8">
+        <Link href="/studio" className="btn btn-light">
+          Visit the studio page <IconArrow size={14} />
+        </Link>
       </div>
     </section>
   );

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { looks } from "@/content/lookbook";
 import { gsap, useIdleGSAP, prefersReducedMotion, ScrollTrigger } from "@/lib/gsap";
 import { IconArrow } from "@/components/ui/Icons";
+import { cv } from "@/lib/cv";
 
 const DECK = looks.slice(0, 6);
 // Resting spots once the deck fans out (% of stage, rotation)
@@ -57,8 +58,10 @@ export function LookbookDeck() {
   }, root);
 
   return (
-    <section ref={root} className="relative bg-sand motion-safe:h-[280svh]" aria-labelledby="deck-title">
-      <div ref={stage} className="grain relative h-[100svh] overflow-hidden motion-safe:sticky motion-safe:top-0">
+    <>
+    <PhoneDeck />
+    <section ref={root} className="relative bg-sand ph:hidden desk:h-[280svh]" aria-labelledby="deck-title">
+      <div ref={stage} className="grain relative h-[100svh] overflow-hidden desk:sticky desk:top-0">
         <div className="container-x absolute inset-x-0 top-0 z-[60] flex items-start justify-between pt-[calc(var(--header-h)+1.5rem)]">
           <p className="t-mono text-muted">( 07 ) FW26 Lookbook</p>
           <p className="t-mono hidden text-muted md:block">8 looks · shot around Dallas</p>
@@ -91,6 +94,42 @@ export function LookbookDeck() {
             Open the lookbook <IconArrow size={16} />
           </Link>
         </div>
+      </div>
+    </section>
+    </>
+  );
+}
+
+/** Phones and touch tablets: the prints as a swipe rail, slightly askew like on the table. */
+function PhoneDeck() {
+  return (
+    <section {...cv("deck")} className="grain hidden bg-sand py-16 ph:block" aria-labelledby="deck-title-ph">
+      <div className="container-x flex items-start justify-between gap-4">
+        <p className="t-mono text-muted">( 07 ) FW26 Lookbook</p>
+        <p className="t-mono text-muted">8 looks · shot around Dallas</p>
+      </div>
+      <h2 id="deck-title-ph" className="container-x mt-4 font-display text-[3rem] font-extrabold uppercase leading-[0.82] tracking-[-0.045em] text-char/90">
+        Shop
+        <br />
+        the look
+      </h2>
+      <ul className="rail mt-8 pb-4 pt-2">
+        {DECK.map((l, i) => (
+          <li key={l.id} className="w-[64vw] max-w-[18rem] bg-paper p-2 pb-9 shadow-[0_18px_36px_-16px_rgb(21_21_19/0.4)]" style={{ transform: `rotate(${i % 2 ? 1.2 : -1.2}deg)` }}>
+            <span className="media relative block aspect-[4/5]">
+              <Image src={l.image} alt={l.alt} fill sizes="(min-width: 640px) 18rem, 64vw" className="object-cover" />
+            </span>
+            <span className="t-mono mt-3 flex justify-between px-1 text-[0.58rem] text-muted">
+              <span>Look {l.n}</span>
+              <span>{l.place}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className="container-x mt-8">
+        <Link href="/lookbook" className="btn btn-solid">
+          Open the lookbook <IconArrow size={16} />
+        </Link>
       </div>
     </section>
   );

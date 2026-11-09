@@ -23,14 +23,14 @@ export function Countdown({ to, className, size = "md" }: { to: "sale" | "drop";
   ];
   const label = to === "sale" ? "Sale ends in" : "Next drop in";
   return (
-    <div className={clsx("flex items-end gap-3", className)} role="timer" aria-label={mounted ? `${label} ${parts[0].v} days ${parts[1].v} hours ${parts[2].v} minutes` : label}>
+    <div className={clsx("flex items-end gap-2 sm:gap-3", className)} role="timer" aria-label={mounted ? `${label} ${parts[0].v} days ${parts[1].v} hours ${parts[2].v} minutes` : label}>
       {parts.map((p, i) => (
-        <div key={p.l} className="flex items-end gap-3">
+        <div key={p.l} className="flex items-end gap-2 sm:gap-3">
           <div className="text-center">
             <span
               className={clsx(
                 "block font-display font-extrabold tabular-nums leading-none",
-                size === "lg" ? "text-[clamp(2.4rem,5vw,4.5rem)]" : size === "md" ? "text-[clamp(1.8rem,3vw,2.6rem)]" : "text-xl",
+                size === "lg" ? "text-[clamp(1.9rem,8vw,2.4rem)] md:text-[clamp(2.4rem,5vw,4.5rem)]" : size === "md" ? "text-[clamp(1.8rem,3vw,2.6rem)]" : "text-xl",
               )}
               aria-hidden="true"
             >
