@@ -63,12 +63,27 @@ export function Header() {
   const closeTimer = useRef<number>(0);
 
   useEffect(() => {
-    let lastY = window.scrollY;
+    // Hysteresis: the header only flips once the page has moved 12 px one way since the last flip
+    // (or since the furthest point in the current direction), so tiny back-and-forth steps as
+    // Lenis eases a scroll out can't make it blink.
+    let anchor = window.scrollY;
+    let isHidden = false;
+    const set = (h: boolean) => {
+      isHidden = h;
+      setHidden(h);
+    };
     const onScroll = () => {
       const y = window.scrollY;
       setScrolled(y > (isHome ? window.innerHeight * 0.7 : 24));
-      setHidden(y > 320 && y > lastY + 4 ? true : y < lastY - 4 ? false : (h) => h);
-      lastY = y;
+      const dy = y - anchor;
+      if (isHidden ? dy > 0 : dy < 0) anchor = y; // still going the same way: follow it to the turning point
+      else if (dy > 12 && y > 320) {
+        set(true);
+        anchor = y;
+      } else if (dy < -12) {
+        set(false);
+        anchor = y;
+      }
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });

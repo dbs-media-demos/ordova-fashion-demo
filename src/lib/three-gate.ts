@@ -8,6 +8,10 @@
 export const DESKTOP_3D_QUERY = "(min-width: 1024px) and (hover: hover) and (pointer: fine)";
 
 const OFF_KEY = "ordova-3d-off";
+const SLOW_KEY = "ordova-3d-slow";
+const SLOW_LIMIT = 2;
+// This page load ran slow: the scenes after it on this page stay stills too (counted once per load)
+let slowHere = false;
 const OFF_EVENT = "ordova:3d-off";
 
 export function can3D() {
@@ -55,7 +59,7 @@ export function after3DGate(yes: () => void, no?: () => void) {
     if (cancelled) return;
     if (!can3D()) return no?.();
     if (loadBlocked() > BUSY_LIMIT) {
-      mark3DOff(`busy CPU: ${Math.round(blocked)} ms blocked while loading`);
+      mark3DOff("slow", `busy CPU: ${Math.round(blocked)} ms blocked while loading`);
       return no?.();
     }
     yes();
@@ -75,21 +79,28 @@ export function after3DGate(yes: () => void, no?: () => void) {
 }
 
 function is3DOff() {
+  if (slowHere) return true;
   try {
-    return sessionStorage.getItem(OFF_KEY) === "1";
+    // only "gpu" counts under the old key: a tab's old "1" (one slow start) doesn't hold any more
+    return sessionStorage.getItem(OFF_KEY) === "gpu" || Number(sessionStorage.getItem(SLOW_KEY) || 0) >= SLOW_LIMIT;
   } catch {
     return false;
   }
 }
 
 /**
- * This computer can't hold a smooth scene (no real GPU, or under ~45 fps in a scene's first two
- * seconds): every scene goes back to its still, and the rest of the visit starts on stills.
+ * A scene couldn't run here: every scene on this page goes back to its still. No real GPU
+ * (`"gpu"`) keeps the rest of the visit on stills at once. Running slow (`"slow"`: under ~45 fps
+ * in a scene's first two seconds, a slow cloth step, a strained page load) is counted once per
+ * page load and keeps the visit on stills only after 2 slow loads: on 18 Nov one slow start on a
+ * refresh (the GPU's first draw) kept a fast PC on the stills for the whole tab.
  */
-export function mark3DOff(reason: string) {
+export function mark3DOff(why: "gpu" | "slow", reason: string) {
   try {
-    sessionStorage.setItem(OFF_KEY, "1");
+    if (why === "gpu") sessionStorage.setItem(OFF_KEY, "gpu");
+    else if (!slowHere) sessionStorage.setItem(SLOW_KEY, String(Number(sessionStorage.getItem(SLOW_KEY) || 0) + 1));
   } catch {}
+  if (why === "slow") slowHere = true;
   window.dispatchEvent(new CustomEvent(OFF_EVENT, { detail: reason }));
 }
 

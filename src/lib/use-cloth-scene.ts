@@ -28,7 +28,8 @@ const PROBE_WAIT = 2600;
  * A desktop cloth scene that never stutters on the way in. The still underneath stays until the
  * scene is built, settled, compiled and has drawn a hidden frame; scenes warm one by one in idle
  * time after load (page order). No real GPU, or a slow first two seconds, fades back to the still,
- * frees the GPU and keeps every scene on its still for the visit. three.js is only fetched inside
+ * frees the GPU and keeps every scene on this page on its still (no GPU: for the visit; slow: for
+ * the visit after 2 slow page loads, see lib/three-gate). three.js is only fetched inside
  * the gate, so phones, tablets, reduced motion and Save-Data never download it.
  */
 export function useClothScene({ mode, canvas, host, fabric, attach, holdQueue, enabled = true }: Setup) {
@@ -76,11 +77,12 @@ export function useClothScene({ mode, canvas, host, fabric, attach, holdQueue, e
             mode,
             fabric: cb.current.fabric?.(),
             pause: yieldIdle,
-            onSlow: (fps, worst, work) => mark3DOff(`${mode}: ${Math.round(fps)} fps, worst frame ${Math.round(worst)} ms, ${work.toFixed(1)} ms work`),
+            onSlow: (fps, worst, work) => mark3DOff("slow", `${mode}: ${Math.round(fps)} fps, worst frame ${Math.round(worst)} ms, ${work.toFixed(1)} ms work`),
           });
         } catch (e) {
           performance.mark(`3d:${mode}:failed`, { detail: String(e) });
-          if (e instanceof NoGpuError || e instanceof SlowCpuError) mark3DOff(e.message);
+          if (e instanceof NoGpuError) mark3DOff("gpu", e.message);
+          else if (e instanceof SlowCpuError) mark3DOff("slow", e.message);
           return; // the still stays
         }
         if (disposed || !can3D()) return h.dispose();

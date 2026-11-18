@@ -55,6 +55,13 @@ const SOFTWARE_GL = /swiftshader|llvmpipe|softpipe|software|basic render|microso
 const PROBE_MS = 2000;
 const PROBE_FPS = 45;
 const PROBE_WORST = 100;
+/** A hitch or two over PROBE_WORST (a font, an image decode) isn't a slow computer: the 3rd one is, or one over 4x it. */
+const PROBE_HITCHES = 3;
+/**
+ * The first frame gaps after a scene appears pay one-off costs and aren't judged: the GPU's first
+ * real draw took 371 ms on a refresh on a PC that then ran 112 fps (18 Nov).
+ */
+const PROBE_GRACE = 5;
 const PROBE_WORK = 9;
 /** A settle step slower than this (ms, after warm-up) can't hold 60 fps: the build stops and the still stays. */
 const SLOW_STEP = 12;
@@ -526,30 +533,32 @@ export async function createClothScene(canvas: HTMLCanvasElement, opts: Opts): P
   let ready = false;
   let disposed = false;
   let stopped = false;
-  const probe = { on: true, n: 0, prev: 0, t0: 0, frames: 0, worst: 0, work: 0 };
+  const probe = { on: true, n: 0, prev: 0, t0: 0, frames: 0, worst: 0, work: 0, hitches: 0 };
   let settleProbe: (smooth: boolean) => void = () => {};
   const probed = new Promise<boolean>((r) => (settleProbe = r));
-  const resetProbe = () => Object.assign(probe, { n: 0, prev: 0, t0: 0, frames: 0, worst: 0, work: 0 });
+  const resetProbe = () => Object.assign(probe, { n: 0, prev: 0, t0: 0, frames: 0, worst: 0, work: 0, hitches: 0 });
   const watch = (now: number, work: number) => {
     if (!probe.on) return;
     if (probe.prev) {
       const gap = now - probe.prev;
       probe.n++;
-      if (probe.n === 3) probe.t0 = now;
-      else if (probe.n > 3) {
+      if (probe.n === PROBE_GRACE) probe.t0 = now;
+      else if (probe.n > PROBE_GRACE) {
         probe.frames++;
         probe.worst = Math.max(probe.worst, gap);
         probe.work += work;
+        if (gap > PROBE_WORST) probe.hitches++;
       }
     }
     probe.prev = now;
     const span = probe.t0 ? now - probe.t0 : 0;
     const fps = span ? (probe.frames * 1000) / span : 60;
-    if (probe.worst > PROBE_WORST || span >= PROBE_MS) {
+    const hitched = probe.hitches >= PROBE_HITCHES || probe.worst > PROBE_WORST * 4;
+    if (hitched || span >= PROBE_MS) {
       probe.on = false;
       const w = probe.work / Math.max(1, probe.frames);
-      const smooth = fps >= PROBE_FPS && probe.worst <= PROBE_WORST && w <= PROBE_WORK;
-      performance.mark(`3d:${mode}:probe`, { detail: { fps: Math.round(fps), worst: Math.round(probe.worst), work: +w.toFixed(2), smooth } });
+      const smooth = fps >= PROBE_FPS && !hitched && w <= PROBE_WORK;
+      performance.mark(`3d:${mode}:probe`, { detail: { fps: Math.round(fps), worst: Math.round(probe.worst), hitches: probe.hitches, work: +w.toFixed(2), smooth } });
       settleProbe(smooth);
       if (!smooth) {
         stopped = true;
