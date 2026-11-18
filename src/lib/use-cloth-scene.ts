@@ -16,6 +16,8 @@ type Setup = {
   attach?: (s: ClothScene) => () => void;
   /** Hold the warm-up queue until this scene's first two seconds are timed (the hero). */
   holdQueue?: boolean;
+  /** false: never build a scene and never fetch three.js; the still stays (the /v2 homepage). */
+  enabled?: boolean;
 };
 
 const FADE_MS = 1400;
@@ -29,7 +31,7 @@ const PROBE_WAIT = 2600;
  * frees the GPU and keeps every scene on its still for the visit. three.js is only fetched inside
  * the gate, so phones, tablets, reduced motion and Save-Data never download it.
  */
-export function useClothScene({ mode, canvas, host, fabric, attach, holdQueue }: Setup) {
+export function useClothScene({ mode, canvas, host, fabric, attach, holdQueue, enabled = true }: Setup) {
   const scene = useRef<ClothScene | null>(null);
   const [live, setLive] = useState(false);
   const cb = useRef({ fabric, attach });
@@ -38,6 +40,7 @@ export function useClothScene({ mode, canvas, host, fabric, attach, holdQueue }:
   });
 
   useEffect(() => {
+    if (!enabled) return;
     let s: ClothScene | null = null;
     let disposed = false;
     let detach = () => {};
@@ -108,7 +111,7 @@ export function useClothScene({ mode, canvas, host, fabric, attach, holdQueue }:
       s?.dispose();
       leaving?.dispose();
     };
-  }, [mode, canvas, host, holdQueue]);
+  }, [mode, canvas, host, holdQueue, enabled]);
 
   return { scene, live };
 }

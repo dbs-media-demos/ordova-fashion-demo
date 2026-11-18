@@ -16,7 +16,7 @@ import { FABRICS, type FabricId } from "@/content/fabrics";
  * or knit (its own weight, stiffness and stretch) and can be pulled; phones
  * get the four cloths as photos with the same words.
  */
-export function FabricReel() {
+export function FabricReel({ cloth3D = true }: { cloth3D?: boolean }) {
   const root = useRef<HTMLElement>(null);
   const vid = useRef<HTMLVideoElement>(null);
   const [load, setLoad] = useState(false);
@@ -94,7 +94,7 @@ export function FabricReel() {
         </div>
       </div>
       <div data-swatches className="container-x py-16 md:py-24">
-        <SwatchTable />
+        <SwatchTable cloth3D={cloth3D} />
         {/* phones and tablets: the four cloths as photos, same words */}
         <h3 className="mb-6 font-display text-3xl font-extrabold uppercase leading-[0.9] tracking-[-0.03em] lg:hidden">Feel the cloth</h3>
         <div className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-4 lg:hidden">
@@ -122,7 +122,7 @@ export function FabricReel() {
 const still = (base: string, ext: string) => `${base}-800.${ext} 800w, ${base}-1200.${ext} 1200w`;
 
 /** Desktop: one swatch on two clips. Pick a cloth and it re-hangs with its own weight; pull it. */
-function SwatchTable() {
+function SwatchTable({ cloth3D }: { cloth3D: boolean }) {
   const host = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [fabric, setFabric] = useState<FabricId>("linen");
@@ -132,6 +132,7 @@ function SwatchTable() {
 
   const { scene, live } = useClothScene({
     mode: "swatch",
+    enabled: cloth3D,
     canvas,
     host,
     fabric: () => picked.current,
@@ -209,12 +210,14 @@ function SwatchTable() {
             className="absolute inset-0 h-full w-full object-cover"
           />
         </picture>
-        <canvas
-          ref={canvas}
-          aria-hidden="true"
-          data-cursor={grabbing ? undefined : "Pull"}
-          className={clsx("absolute inset-0 h-full w-full touch-none transition-opacity duration-[1400ms]", live ? "opacity-100" : "opacity-0", grabbing ? "cursor-grabbing" : "cursor-grab")}
-        />
+        {cloth3D && (
+          <canvas
+            ref={canvas}
+            aria-hidden="true"
+            data-cursor={grabbing ? undefined : "Pull"}
+            className={clsx("absolute inset-0 h-full w-full touch-none transition-opacity duration-[1400ms]", live ? "opacity-100" : "opacity-0", grabbing ? "cursor-grabbing" : "cursor-grab")}
+          />
+        )}
       </div>
       <div className="col-span-5">
         <h3 className="font-display text-[clamp(2rem,3.4vw,3.25rem)] font-extrabold uppercase leading-[0.9] tracking-[-0.03em]">Feel the cloth</h3>

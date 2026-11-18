@@ -52,7 +52,8 @@ const NAV = [
 
 export function Header() {
   const pathname = usePathname();
-  const isHome = pathname === "/";
+  // both homepages (/ and /v2, the one without 3D) open on a dark hero
+  const isHome = pathname === "/" || pathname === "/v2";
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [mega, setMega] = useState(false);

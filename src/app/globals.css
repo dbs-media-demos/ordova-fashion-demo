@@ -822,3 +822,145 @@
     transition: none !important;
   }
 }
+
+/* ---- /v2 hero: the cutting table (components/home/HeroPattern.tsx; desktop only, no 3D) ---- */
+.pat-mat {
+  background-color: #1a1a17;
+  background-image:
+    radial-gradient(ellipse 70% 80% at 68% 50%, rgb(255 240 220 / 0.07), transparent 70%),
+    linear-gradient(rgb(246 243 238 / 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(246 243 238 / 0.055) 1px, transparent 1px),
+    linear-gradient(rgb(246 243 238 / 0.024) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(246 243 238 / 0.024) 1px, transparent 1px);
+  background-size: 100% 100%, 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+  background-position: 0 0, -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+}
+.pat-cloth {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.3),
+    0 12px 24px -8px rgb(0 0 0 / 0.45),
+    0 48px 90px -24px rgb(0 0 0 / 0.65);
+}
+.pat-chalk {
+  fill: none;
+  stroke: #f4ede2;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pat-chalk text {
+  fill: #f6f0e6;
+  stroke: rgb(70 45 25 / 0.3);
+  stroke-width: 3px;
+  paint-order: stroke;
+  font-family: var(--font-mono);
+  font-size: 16px;
+  letter-spacing: 0.08em;
+}
+.pat-chalk .pat-big {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+.pat-chalk .pat-cut {
+  stroke-width: 3.2;
+}
+.pat-chalk .pat-dash {
+  stroke-dasharray: 10 8;
+}
+.pat-chalk .pat-stitch {
+  stroke: #fffaf2;
+  stroke-width: 2.8;
+  stroke-dasharray: 9 7;
+}
+.pat-needle {
+  fill: var(--color-cobalt);
+  stroke: #fff;
+  stroke-width: 2;
+}
+.pat-draw {
+  stroke-dasharray: 1 1;
+  animation: pat-draw var(--d, 1.2s) cubic-bezier(0.65, 0, 0.35, 1) var(--t, 0s) both;
+}
+.pat-sewing {
+  animation-timing-function: linear;
+}
+.pat-pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pat-pop 0.7s var(--ease-out-expo) var(--t, 0s) both;
+}
+.pat-type {
+  animation: pat-fade 0.7s ease-out var(--t, 0s) both;
+}
+.pat-sheen {
+  animation: pat-sheen 11s ease-in-out infinite alternate;
+}
+.pat-steps li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  opacity: 0.4;
+  transition: opacity 0.4s;
+}
+.pat-steps li::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  transform: scale(0.5);
+  transition:
+    transform 0.4s var(--ease-out-expo),
+    background-color 0.4s;
+}
+.pat-steps li:last-child::before {
+  display: none;
+}
+.pat-steps li[data-on] {
+  opacity: 1;
+}
+.pat-steps li[data-on]::before {
+  background: var(--color-cobalt);
+  box-shadow: 0 0 0 2px var(--color-bone);
+  transform: scale(1);
+}
+@keyframes pat-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes pat-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.3) rotate(-45deg);
+  }
+}
+@keyframes pat-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pat-sheen {
+  from {
+    transform: translate(-7%, -5%);
+  }
+  to {
+    transform: translate(7%, 6%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pat-draw,
+  .pat-pop,
+  .pat-type,
+  .pat-sheen {
+    animation: none !important;
+  }
+  .pat-needle {
+    display: none;
+  }
+}
