@@ -1,4 +1,5 @@
 import { site } from "./site";
+import { dayRange, weekFromMonday, type Biz } from "./biz-core";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -44,8 +45,11 @@ export function openStatus(now = new Date()) {
   return { open: false, label: "Closed" };
 }
 
-export const hoursTable = () =>
-  [1, 2, 3, 4, 5, 6, 0].map((d) => {
+/** Monday-first rows; a preview passes its business (their hours, plain "Closed"; none when unknown). */
+export const hoursTable = (biz?: Biz) => {
+  if (biz?.preview) return biz.hours ? weekFromMonday(biz.hours).map((h) => ({ day: DAYS[h.day], short: DAYS[h.day].slice(0, 3), text: dayRange(h, "en") })) : [];
+  return [1, 2, 3, 4, 5, 6, 0].map((d) => {
     const h = site.hours.find((x) => x.day === d)!;
     return { day: DAYS[d], short: DAYS[d].slice(0, 3), text: h.open && h.close ? `${fmtTime(h.open)} – ${fmtTime(h.close)}` : "Closed (studio day)" };
   });
+};

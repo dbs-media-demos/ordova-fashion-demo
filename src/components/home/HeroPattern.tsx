@@ -2,12 +2,16 @@
 
 import { useEffect, useRef, type CSSProperties } from "react";
 import Link from "next/link";
+import clsx from "clsx";
 import { getImageProps } from "next/image";
 import { Ring } from "@/components/brand/Logo";
 import { gsap, useIdleGSAP, prefersReducedMotion, onIdle } from "@/lib/gsap";
 import { IconArrow, IconPhone } from "@/components/ui/Icons";
 import { Stars } from "@/components/ui/Stars";
-import { site } from "@/lib/site";
+import { useBiz } from "@/components/preview/BizContext";
+import { telOf } from "@/lib/biz-core";
+import { heroName } from "@/lib/hero-name";
+import { loaderShowing, whenLoaderDone } from "@/lib/loader";
 
 /*
  * The /v2 hero: the homepage without any 3D (no three.js, no WebGL; SVG, CSS and GSAP only).
@@ -59,6 +63,24 @@ export function HeroPattern() {
   const finale = useRef<HTMLDivElement>(null);
   const steps = useRef<HTMLOListElement>(null);
   const garmentImg = useRef<HTMLImageElement>(null);
+  const needleSvg = useRef<SVGSVGElement>(null);
+  const biz = useBiz();
+  const pf = biz.preview ? false : undefined;
+  // A preview: the business's name in the wordmark's place, its town, and the season without Dallas
+  const name = biz.preview ? heroName(biz.shortName) : null;
+  const town = biz.preview ? [biz.area, biz.address.region].filter(Boolean).join(", ") : "Bishop Arts, Dallas";
+
+  // A preview that opens on the lead's logo: the needle (SVG timing, which CSS can't pause) waits too,
+  // then starts from the top as the loader leaves, with the chalk lines (paused in CSS meanwhile).
+  useEffect(() => {
+    const svg = needleSvg.current;
+    if (!svg || !loaderShowing()) return;
+    svg.pauseAnimations();
+    return whenLoaderDone(() => {
+      svg.setCurrentTime(0);
+      svg.unpauseAnimations();
+    });
+  }, []);
 
   // Decode the shirt photo while the browser is idle after load, so its first reveal mid-scroll never stalls a frame.
   useEffect(() => {
@@ -132,18 +154,42 @@ export function HeroPattern() {
     };
   }, root);
 
-  const rating = (
+  const rating = biz.rating && (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-bone/90">
-      <Stars value={site.rating.value} size={13} className="text-[#e9c46a]" />
+      <Stars value={biz.rating.value} size={13} className="text-[#e9c46a]" />
       <span>
-        <strong className="font-semibold text-bone">{site.rating.value}</strong> · {site.rating.count} Google reviews
+        <strong className="font-semibold text-bone">{biz.rating.value}</strong> · {biz.rating.count} Google reviews
       </span>
     </p>
   );
-  const srName = <span className="sr-only">Ordova — concept store and small-batch label, Bishop Arts, Dallas</span>;
+  const srName = (
+    <span className="sr-only">
+      {biz.preview ? `${biz.name}${biz.area ? ` — clothing boutique, ${biz.area}` : ""}` : "Ordova — concept store and small-batch label, Bishop Arts, Dallas"}
+    </span>
+  );
+  /** The wordmark: ORDOVA, or on a preview their name with its first O as the ring */
+  const word = (max: number, width: number, className: string) =>
+    name ? (
+      <h1 className={clsx(className, "whitespace-pre")} style={{ fontSize: name.fit(max, width) }}>
+        <span aria-hidden="true">{name.before}</span>
+        <span className={clsx("block", name.ringFirst && "mr-[0.3em]")}>
+          <Ring className="h-[0.74em] w-[0.74em]" />
+        </span>
+        <span aria-hidden="true">{name.after}</span>
+        {srName}
+      </h1>
+    ) : (
+      <h1 className={className} style={{ fontSize: `${max}vw` }}>
+        <span className="block">
+          <Ring className="h-[0.74em] w-[0.74em]" />
+        </span>
+        <span aria-hidden="true">rdova</span>
+        {srName}
+      </h1>
+    );
 
   return (
-    <section ref={root} className="theme-char relative pt-[var(--header-h)] lg:pt-0 deskl:motion-safe:h-[230svh]" aria-label="Ordova, Bishop Arts, Dallas">
+    <section ref={root} className="theme-char relative pt-[var(--header-h)] lg:pt-0 deskl:motion-safe:h-[230svh]" data-hero aria-label={biz.preview ? [biz.name, biz.area].filter(Boolean).join(", ") : "Ordova, Bishop Arts, Dallas"}>
       {/* ---- Phones and tablets: the same first screen as / ---- */}
       <div className="lg:hidden">
         <div className="relative h-[min(50svh,112vw)] overflow-hidden">
@@ -163,30 +209,26 @@ export function HeroPattern() {
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgb(21_21_19/0.35)_0%,transparent_30%,transparent_62%,rgb(21_21_19/0.6)_100%)]" />
           <div className="absolute inset-x-0 top-0 bg-[linear-gradient(180deg,rgb(21_21_19/0.7),transparent)] px-4 pb-10 pt-4 text-bone">
             <p className="t-mono text-[0.68rem]">FW26 · Drop 02 — &ldquo;Caliche&rdquo; is in the shop</p>
-            <p className="mt-1 max-w-[34ch] text-[0.8rem] leading-snug text-bone/85">Named for the pale Texas earth: chalk, clay and dry-grass tones in linen, wool and raw denim.</p>
+            <p className="mt-1 max-w-[34ch] text-[0.8rem] leading-snug text-bone/85">{biz.preview ? "Named for pale earth" : "Named for the pale Texas earth"}: chalk, clay and dry-grass tones in linen, wool and raw denim.</p>
           </div>
           <div className="pointer-events-none absolute inset-x-0 bottom-3 z-[3] flex justify-center">
-            <h1 className="flex items-center font-display text-[14.2vw] font-extrabold uppercase leading-[0.8] tracking-[-0.045em] text-bone">
-              <span className="block">
-                <Ring className="h-[0.74em] w-[0.74em]" />
-              </span>
-              <span aria-hidden="true">rdova</span>
-              {srName}
-            </h1>
+            {word(14.2, 90, "flex items-center font-display font-extrabold uppercase leading-[0.8] tracking-[-0.045em] text-bone")}
           </div>
         </div>
         <div className="container-x relative z-[4] pb-7 pt-5">
           <div className="max-w-md">
             <p className="text-balance text-[1.08rem] leading-snug text-bone">Fewer, better clothes — cut and sewn a mile from the shop, in runs of thirty.</p>
             <div className="mt-3">{rating}</div>
-            <p className="t-mono mt-1 text-[0.68rem] text-bone/70">Bishop Arts, Dallas · Est. 2019</p>
+            {town && <p className="t-mono mt-1 text-[0.68rem] text-bone/70">{biz.preview ? town : `${town} · Est. 2019`}</p>}
             <div className="mt-5 grid grid-cols-2 gap-2">
-              <Link href="/collections/new-in" className="btn btn-light min-h-[2.75rem] px-3 text-[0.68rem]">
+              <Link href="/collections/new-in" prefetch={pf} className="btn btn-light min-h-[2.75rem] px-3 text-[0.68rem]">
                 Shop new in <IconArrow size={16} />
               </Link>
-              <a href={site.phoneHref} className="btn btn-ghost btn-sm px-3 tracking-[0.04em] text-bone" aria-label={`Call the shop, ${site.phone}`}>
-                <IconPhone size={15} /> {site.phone}
-              </a>
+              {biz.phone && (
+                <a href={telOf(biz)} className="btn btn-ghost btn-sm px-3 tracking-[0.04em] text-bone" aria-label={`Call the shop, ${biz.phoneDisplay}`}>
+                  <IconPhone size={15} /> {biz.phoneDisplay}
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -198,34 +240,30 @@ export function HeroPattern() {
         <div className="container-x relative flex h-full gap-[clamp(2rem,4.5vw,5rem)] pb-[8svh] pt-[calc(var(--header-h)+8svh)]">
           {/* The words: there at once, never animated in */}
           <div className="flex min-w-0 flex-1 flex-col justify-between">
-            <p className="t-mono text-bone/90">FW26 · Drop 02 — &ldquo;Caliche&rdquo; is in the shop · Est. 2019</p>
+            <p className="t-mono text-bone/90">FW26 · Drop 02 — &ldquo;Caliche&rdquo; is in the shop{biz.preview ? "" : " · Est. 2019"}</p>
 
             <div>
-              <p className="t-mono text-bone/80">Concept store &amp; small-batch label — Bishop Arts, Dallas</p>
-              <h1 className="mt-4 flex items-center font-display text-[6.2vw] font-extrabold uppercase leading-[0.8] tracking-[-0.045em] text-bone">
-                <span className="block">
-                  <Ring className="h-[0.74em] w-[0.74em]" />
-                </span>
-                <span aria-hidden="true">rdova</span>
-                {srName}
-              </h1>
+              <p className="t-mono text-bone/80">{biz.preview ? `Clothing boutique${town ? ` — ${town}` : ""}` : "Concept store & small-batch label — Bishop Arts, Dallas"}</p>
+              {word(6.2, 38, "mt-4 flex items-center font-display font-extrabold uppercase leading-[0.8] tracking-[-0.045em] text-bone")}
               <p className="mt-7 max-w-[30ch] text-balance text-[clamp(1.2rem,1.65vw,1.7rem)] leading-[1.25] text-bone">
                 Fewer, better clothes — cut and sewn a mile from the shop, in runs of thirty.
               </p>
               <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">
                 {rating}
-                <span className="t-mono text-bone/70">Bishop Arts, Dallas</span>
+                {town && <span className="t-mono text-bone/70">{town}</span>}
               </div>
               <div className="mt-7 flex flex-wrap gap-2.5">
-                <Link href="/collections/new-in" className="btn btn-light">
+                <Link href="/collections/new-in" prefetch={pf} className="btn btn-light">
                   Shop new in <IconArrow size={16} />
                 </Link>
-                <Link href="/lookbook" className="btn btn-ghost text-bone">
+                <Link href="/lookbook" prefetch={pf} className="btn btn-ghost text-bone">
                   The lookbook
                 </Link>
-                <a href={site.phoneHref} className="btn btn-ghost text-bone" aria-label={`Call the shop, ${site.phone}`}>
-                  <IconPhone size={15} /> {site.phone}
-                </a>
+                {biz.phone && (
+                  <a href={telOf(biz)} className="btn btn-ghost text-bone" aria-label={`Call the shop, ${biz.phoneDisplay}`}>
+                    <IconPhone size={15} /> {biz.phoneDisplay}
+                  </a>
+                )}
               </div>
             </div>
 
@@ -295,7 +333,7 @@ export function HeroPattern() {
                     ))}
                     <g className="pat-label">
                       <text x="150" y="452" className="pat-type" style={t(1.75)}>
-                        ORDOVA — FW26
+                        {biz.preview ? `${biz.shortName.toUpperCase().slice(0, 18)} — FW26` : "ORDOVA — FW26"}
                       </text>
                       <text x="150" y="482" className="pat-type pat-big" style={t(1.85)}>
                         CALICHE OVERSHIRT
@@ -319,7 +357,7 @@ export function HeroPattern() {
                   </svg>
 
                   {/* chalk: the cut line, then the stitches sewn round it */}
-                  <svg viewBox="0 0 600 800" className="pat-chalk absolute inset-0 h-full w-full overflow-visible" aria-hidden="true">
+                  <svg ref={needleSvg} viewBox="0 0 600 800" className="pat-chalk absolute inset-0 h-full w-full overflow-visible" aria-hidden="true">
                     <defs>
                       <clipPath id="ordova-piece" clipPathUnits="objectBoundingBox">
                         <path d={CUT} transform="scale(0.0016667 0.00125)" />
@@ -350,10 +388,10 @@ export function HeroPattern() {
               {/* 03: now in the shop */}
               <div ref={finale} className="invisible absolute bottom-[10%] left-[19%] right-[12%] opacity-0">
                 <p className="t-mono text-bone [text-shadow:0_1px_12px_rgb(21_21_19/0.6)]">
-                  Sewn in Dallas — now in the shop
+                  {biz.preview ? "Sewn in small runs — now in the shop" : "Sewn in Dallas — now in the shop"}
                   <span className="mt-1.5 block font-display text-[clamp(1.6rem,2.4vw,2.5rem)] font-extrabold leading-none tracking-[-0.03em]">CALICHE</span>
                 </p>
-                <Link href="/collections/new-in" className="btn btn-light btn-sm mt-4" tabIndex={-1}>
+                <Link href="/collections/new-in" prefetch={pf} className="btn btn-light btn-sm mt-4" tabIndex={-1}>
                   Shop Caliche <IconArrow size={15} />
                 </Link>
               </div>

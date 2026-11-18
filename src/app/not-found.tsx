@@ -1,12 +1,26 @@
 import Link from "next/link";
-import { Ring } from "@/components/brand/Logo";
+import { Ring, Wordmark } from "@/components/brand/Logo";
 import { inCollection, toCard } from "@/content/catalog";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { IconArrow } from "@/components/ui/Icons";
 
 export default function NotFound() {
   const picks = inCollection("bestsellers").slice(0, 4).map(toCard);
+  // Rendered by the root layout alone (pages get their chrome from (site)/layout), so it brings a light
+  // top bar of its own: the full Header/Footer here would ship their code twice on every page.
   return (
+    <>
+      <header className="fixed inset-x-0 top-0 z-[100] border-b border-line bg-bone">
+        <div className="container-x flex h-[var(--header-h)] items-center justify-between">
+          <Link href="/" aria-label="Ordova — home">
+            <Wordmark className="text-[1.45rem] md:text-[1.7rem]" />
+          </Link>
+          <Link href="/shop" className="t-mono link-u">
+            Shop all
+          </Link>
+        </div>
+      </header>
+      <main id="main">
     <div className="pt-[calc(var(--header-h)+3rem)]">
       <section className="container-x text-center">
         <p className="t-mono text-muted">Error 404</p>
@@ -43,5 +57,7 @@ export default function NotFound() {
         </div>
       </section>
     </div>
+      </main>
+    </>
   );
 }

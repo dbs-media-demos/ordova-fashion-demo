@@ -2,13 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { fontVariables } from "@/lib/fonts";
 import { site, siteUrl, noindex, agencyName, agencyUrl } from "@/lib/site";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { MobileBar } from "@/components/layout/MobileBar";
 import { LazyOverlays } from "@/components/layout/Overlays";
-import { Cursor, DemoBadge, LiveRegion, PageTransition, PhoneRise, SmoothScroll } from "@/components/layout/Chrome";
-import { JsonLd } from "@/components/seo/JsonLd";
-import { storeSchema, websiteSchema } from "@/lib/schema";
+import { Cursor, DemoBadge, LiveRegion, PhoneRise, SmoothScroll } from "@/components/layout/Chrome";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -35,19 +30,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <a href="#main" className="t-mono fixed left-4 top-4 z-[300] -translate-y-24 rounded-full bg-cobalt px-5 py-3 text-bone focus:translate-y-0">
           Skip to content
         </a>
-        <JsonLd data={storeSchema()} />
-        <JsonLd data={websiteSchema()} />
         <SmoothScroll />
         <PhoneRise />
-        <Header />
-        <PageTransition>
-          <main id="main" className="min-h-[60vh]">
-            {children}
-          </main>
-          <Footer />
-        </PageTransition>
+        {/* Header, page, footer and phone bar: (site)/layout for the concept store, for/[token]/layout for a preview (SiteChrome) */}
+        {children}
         <LazyOverlays />
-        <MobileBar />
         <DemoBadge />
         <LiveRegion />
         <Cursor />

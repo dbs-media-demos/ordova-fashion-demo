@@ -7,14 +7,25 @@ import { gsap, useIdleGSAP, prefersReducedMotion, ScrollTrigger } from "@/lib/gs
 import { IconArrow } from "@/components/ui/Icons";
 import { STEPS } from "@/content/studio";
 import { cv } from "@/lib/cv";
+import { useBiz } from "@/components/preview/BizContext";
 
-
+/** The studio's lines: a preview keeps the story but drops the concept store's street. */
+function useStudio() {
+  const biz = useBiz();
+  if (!biz.preview) return { label: "Studio · 2nd floor, Bishop Arts", roomAlt: "The Ordova studio upstairs: a long cutting table, pattern rails and tall windows", steps: STEPS };
+  return {
+    label: "Studio · upstairs from the shop",
+    roomAlt: `The ${biz.shortName} studio upstairs: a long cutting table, pattern rails and tall windows`,
+    steps: STEPS.map((s) => ({ ...s, d: s.d.replace(" on Bishop Ave", " in the shop") })),
+  };
+}
 
 /**
  * Scene 5 — zoom through a window into the studio, then a scrubbed
  * sketch → pattern → cut → sew → tag sequence inside.
  */
 export function StudioWindow() {
+  const { label, roomAlt, steps: STEPS } = useStudio();
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
 
@@ -82,13 +93,13 @@ export function StudioWindow() {
           <p className="font-display text-[clamp(1.9rem,8.4vw,8.5rem)] font-extrabold uppercase leading-none tracking-[-0.04em]">the studio</p>
         </div>
         <div data-frame className="pointer-events-none absolute left-1/2 top-1/2 hidden h-[42%] w-[62%] -translate-x-1/2 -translate-y-1/2 rounded-[4px] outline outline-1 outline-offset-[10px] outline-char/40 desk:block md:h-[50%] md:w-[30%]">
-          <span className="t-mono absolute -bottom-9 left-0 whitespace-nowrap text-muted">Studio · 2nd floor, Bishop Arts</span>
+          <span className="t-mono absolute -bottom-9 left-0 whitespace-nowrap text-muted">{label}</span>
         </div>
 
         {/* the window → full-bleed sequence */}
         <div data-window className="theme-char relative h-[100svh] desk:absolute desk:inset-0 desk:h-auto">
           <div data-room className="absolute inset-0 overflow-hidden">
-            <Image src="/images/ed/studio-room.jpg" alt="The Ordova studio upstairs: tables, dress forms and daylight" fill sizes="100vw" className="object-cover" />
+            <Image src="/images/ed/studio-room.jpg" alt={roomAlt} fill sizes="100vw" className="object-cover" />
           </div>
           {STEPS.map((s) => (
             <div key={s.t} data-step className="absolute inset-0 overflow-hidden">
@@ -134,6 +145,7 @@ export function StudioWindow() {
 
 /** Phones and touch tablets: the same five steps as a swipe rail (no pinned zoom-through). */
 function PhoneStudio() {
+  const { label, roomAlt, steps: STEPS } = useStudio();
   return (
     <section {...cv("studio")} className="theme-char hidden py-16 ph:block" aria-labelledby="studio-title-ph">
       <div className="container-x flex items-end justify-between gap-4">
@@ -151,9 +163,9 @@ function PhoneStudio() {
       <ol className="rail mt-8" aria-label="Steps">
         <li className="w-[78vw] max-w-[22rem]">
           <div className="media relative aspect-[4/5] overflow-hidden rounded-[3px]">
-            <Image src="/images/ed/studio-room.jpg" alt="The Ordova studio upstairs: tables, dress forms and daylight" fill sizes="(min-width: 640px) 22rem, 78vw" className="object-cover" />
+            <Image src="/images/ed/studio-room.jpg" alt={roomAlt} fill sizes="(min-width: 640px) 22rem, 78vw" className="object-cover" />
           </div>
-          <p className="t-mono mt-4 text-bone/70">Studio · 2nd floor, Bishop Arts</p>
+          <p className="t-mono mt-4 text-bone/70">{label}</p>
         </li>
         {STEPS.map((s) => (
           <li key={s.t} className="w-[78vw] max-w-[22rem]">

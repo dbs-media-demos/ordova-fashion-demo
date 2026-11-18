@@ -5,11 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { Wordmark } from "@/components/brand/Logo";
+import { BrandMark } from "@/components/brand/BrandMark";
+import { useBiz } from "@/components/preview/BizContext";
+import { telOf } from "@/lib/biz-core";
 import { IconBag, IconHeart, IconMenu, IconSearch, IconClose, IconArrowUpRight } from "@/components/ui/Icons";
 import { useCart, useUi, ui, useMounted, useWishlist } from "@/lib/store";
 import { collections } from "@/content/taxonomy";
-import { site } from "@/lib/site";
 
 const MEGA = [
   {
@@ -52,8 +53,11 @@ const NAV = [
 
 export function Header() {
   const pathname = usePathname();
-  // both homepages (/ and /v2, the one without 3D) open on a dark hero
-  const isHome = pathname === "/" || pathname === "/v2";
+  const biz = useBiz();
+  // A preview is the homepage only (other links stay put), so nothing is prefetched for it.
+  const pf = biz.preview ? false : undefined;
+  // both homepages (/ and /v2, the one without 3D) and a preview's (/for/<token>, /for/<token>/v2) open on a dark hero
+  const isHome = pathname === "/" || pathname === "/v2" || /^\/for\/[^/]+(\/v2)?\/?$/.test(pathname);
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [mega, setMega] = useState(false);
@@ -120,11 +124,11 @@ export function Header() {
     return (
       <header className="vt-header fixed inset-x-0 top-0 z-[100] border-b border-line bg-bone">
         <div className="container-x grid h-[var(--header-h)] grid-cols-[1fr_auto_1fr] items-center">
-          <Link href="/cart" className="t-mono link-u justify-self-start">
+          <Link href="/cart" prefetch={pf} className="t-mono link-u justify-self-start">
             ← Bag
           </Link>
-          <Link href="/" aria-label="Ordova — home">
-            <Wordmark className="text-[1.45rem]" />
+          <Link href="/" prefetch={pf} aria-label={`${biz.name} — home`}>
+            <BrandMark className="text-[1.45rem]" />
           </Link>
           <span className="t-mono inline-flex items-center gap-2 justify-self-end text-muted">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
@@ -177,7 +181,7 @@ export function Header() {
                 Shop
               </button>
               {NAV.map((n) => (
-                <Link key={n.href} href={n.href} className="t-mono link-u py-3" aria-current={pathname === n.href ? "page" : undefined}>
+                <Link key={n.href} href={n.href} prefetch={pf} className="t-mono link-u py-3" aria-current={pathname === n.href ? "page" : undefined}>
                   {n.label}
                 </Link>
               ))}
@@ -185,8 +189,8 @@ export function Header() {
           </div>
 
           {/* logo */}
-          <Link href="/" aria-label="Ordova — home" className="justify-self-center">
-            <Wordmark className="text-[1.45rem] md:text-[1.7rem]" />
+          <Link href="/" prefetch={pf} aria-label={`${biz.name} — home`} className="justify-self-center">
+            <BrandMark className="text-[1.45rem] md:text-[1.7rem]" />
           </Link>
 
           {/* right */}
@@ -223,7 +227,7 @@ export function Header() {
                       className={clsx("transition-[transform,opacity] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", mega ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0")}
                       style={{ transitionDelay: mega ? `${ci * 60 + i * 35}ms` : "0ms" }}
                     >
-                      <Link href={href} className="link-u text-[1.05rem]">
+                      <Link href={href} prefetch={pf} className="link-u text-[1.05rem]">
                         {label}
                       </Link>
                     </li>
@@ -240,7 +244,7 @@ export function Header() {
                     className={clsx("transition-[transform,opacity] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]", mega ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0")}
                     style={{ transitionDelay: mega ? `${180 + i * 35}ms` : "0ms" }}
                   >
-                    <Link href={`/collections/${c.slug}`} className={clsx("link-u text-[1.05rem]", c.slug === "archive-sale" && "text-cobalt")}>
+                    <Link href={`/collections/${c.slug}`} prefetch={pf} className={clsx("link-u text-[1.05rem]", c.slug === "archive-sale" && "text-cobalt")}>
                       {c.name}
                     </Link>
                   </li>
@@ -252,7 +256,7 @@ export function Header() {
                 { href: "/lookbook", img: "/images/ed/lookbook-01.jpg", k: "FW26", t: "The lookbook" },
                 { href: "/collections/archive-sale", img: "/images/ed/lookbook-05.jpg", k: "Up to 30% off", t: "Archive Sale" },
               ].map((f, i) => (
-                <Link key={f.href} href={f.href} className="group block" tabIndex={mega ? 0 : -1}>
+                <Link key={f.href} href={f.href} prefetch={pf} className="group block" tabIndex={mega ? 0 : -1}>
                   <div
                     className={clsx(
                       "media aspect-[4/5] transition-[clip-path] duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
@@ -281,7 +285,7 @@ function WishLink() {
   const mounted = useMounted();
   const n = mounted ? w.length : 0;
   return (
-    <Link href="/wishlist" className="icon-btn relative hidden sm:inline-grid" aria-label={`Wishlist${n ? `, ${n} saved` : ""}`}>
+    <Link href="/wishlist" prefetch={useBiz().preview ? false : undefined} className="icon-btn relative hidden sm:inline-grid" aria-label={`Wishlist${n ? `, ${n} saved` : ""}`}>
       <IconHeart />
       {n > 0 && <span className="absolute right-1.5 top-2 h-1.5 w-1.5 rounded-full bg-cobalt" />}
     </Link>
@@ -314,6 +318,7 @@ function BagButton() {
 }
 
 function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const biz = useBiz();
   const panel = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
@@ -367,7 +372,7 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
       )}
     >
       <div className="container-x flex h-[var(--header-h)] items-center justify-between">
-        <Wordmark className="text-[1.45rem]" />
+        <BrandMark className="text-[1.45rem]" />
         <button type="button" className="icon-btn -mr-2" aria-label="Close menu" onClick={onClose}>
           <IconClose size={22} />
         </button>
@@ -378,6 +383,7 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
             <li key={href} className="overflow-hidden border-b border-line-lt">
               <Link
                 href={href}
+                prefetch={biz.preview ? false : undefined}
                 onClick={onClose}
                 className={clsx(
                   "flex items-center justify-between py-3.5 font-display text-[2rem] font-extrabold uppercase leading-none tracking-tight transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
@@ -394,12 +400,14 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
         </ul>
       </nav>
       <div className="container-x space-y-2 py-8 text-sm text-mist">
-        <p>{site.address.street}, Bishop Arts, Dallas</p>
-        <p>
-          <a href={site.phoneHref} className="link-line text-bone">
-            {site.phone}
-          </a>
-        </p>
+        <p>{biz.preview ? [biz.address.street, biz.address.city || biz.area].filter(Boolean).join(", ") : `${biz.address.street}, Bishop Arts, Dallas`}</p>
+        {biz.phone && (
+          <p>
+            <a href={telOf(biz)} className="link-line text-bone">
+              {biz.phoneDisplay}
+            </a>
+          </p>
+        )}
       </div>
     </div>
   );

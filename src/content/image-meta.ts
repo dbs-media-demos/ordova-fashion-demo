@@ -21,16 +21,16 @@ export const productImageMeta: Record<string, { alt: string; focal: string }> = 
     "focal": "50% 40%"
   },
   "trinity-knit-dress-1": {
-    "alt": "Woman in a fitted camel ribbed knit dress with a scoop neck on white",
-    "focal": "50% 40%"
+    "alt": "Woman in a fitted beige knit midi dress with a front slit against a grey studio wall",
+    "focal": "50% 35%"
   },
   "trinity-knit-dress-2": {
-    "alt": "Close-up of a camel ribbed knit midi dress hem with a side slit",
-    "focal": "50% 40%"
+    "alt": "Close-up of the front slit and hem of a beige knit midi dress over black boots",
+    "focal": "50% 50%"
   },
   "bishop-poplin-shirt-1": {
-    "alt": "Woman in an oversized white cotton shirt against a warm beige studio backdrop",
-    "focal": "50% 40%"
+    "alt": "Smiling woman in an oversized white cotton shirt and jeans against a grey studio backdrop",
+    "focal": "45% 35%"
   },
   "bishop-poplin-shirt-2": {
     "alt": "Woman holding an oversized white shirt open in strong sunlight against a wall",
@@ -45,8 +45,8 @@ export const productImageMeta: Record<string, { alt: string; focal: string }> = 
     "focal": "50% 40%"
   },
   "elm-rib-tank-c2": {
-    "alt": "Model in a white ribbed tank leaning on a white table in soft light",
-    "focal": "50% 40%"
+    "alt": "Woman in a white ribbed knit tank and jeans against a white backdrop",
+    "focal": "50% 35%"
   },
   "lamar-boxy-tee-1": {
     "alt": "Torso crop of an oversized white boxy t-shirt with cuffed sleeves on white",
@@ -69,8 +69,8 @@ export const productImageMeta: Record<string, { alt: string; focal: string }> = 
     "focal": "50% 40%"
   },
   "ellum-barrel-jean-1": {
-    "alt": "Woman in dark indigo high-rise straight jeans and a white tank in a studio",
-    "focal": "50% 40%"
+    "alt": "Woman in dark indigo high-rise wide straight jeans and a white tank, barefoot in a pale studio",
+    "focal": "42% 45%"
   },
   "ellum-barrel-jean-2": {
     "alt": "Woman in light-wash relaxed jeans and a denim jacket seen from behind outdoors",
@@ -81,8 +81,8 @@ export const productImageMeta: Record<string, { alt: string; focal: string }> = 
     "focal": "50% 40%"
   },
   "caliche-pleated-trouser-2": {
-    "alt": "Woman tucking a white shirt into cream pleated trousers with a black belt",
-    "focal": "50% 40%"
+    "alt": "Woman rolling up the sleeve of a white cotton shirt tucked into cream pleated trousers, leaning on a white chair",
+    "focal": "45% 50%"
   },
   "lone-star-trench-1": {
     "alt": "Woman in a classic beige double-breasted trench coat against a white wall",
@@ -105,28 +105,28 @@ export const productImageMeta: Record<string, { alt: string; focal: string }> = 
     "focal": "50% 40%"
   },
   "pecan-wool-coat-c2": {
-    "alt": "Woman in a long black double-breasted wool coat on a white backdrop",
-    "focal": "50% 40%"
+    "alt": "Woman in a long black double-breasted wool coat worn off one shoulder over a black bralette, against a pale grey wall",
+    "focal": "40% 35%"
   },
   "mesa-cropped-jacket-1": {
-    "alt": "Woman in a black blazer over a white bralette with light-wash jeans",
-    "focal": "50% 40%"
+    "alt": "Woman in a black blazer, dark top and blue jeans against a pale studio wall, full length",
+    "focal": "50% 35%"
   },
   "mesa-cropped-jacket-2": {
     "alt": "Woman in a black blazer and cream trousers posing in a warm studio",
     "focal": "50% 40%"
   },
   "mesa-cropped-jacket-c2": {
-    "alt": "Woman in a pale sage cropped blazer holding a vase against grey",
-    "focal": "50% 40%"
+    "alt": "Woman in a sage cropped jacket and matching trousers holding a flower against cream",
+    "focal": "45% 35%"
   },
   "ervay-oxford-1": {
-    "alt": "Man in a relaxed ecru button-down shirt and dark trousers in a grey studio",
+    "alt": "Man in a relaxed off-white button-down shirt and dark trousers in a balanced pose, grey studio",
     "focal": "50% 40%"
   },
   "ervay-oxford-2": {
-    "alt": "Man in a white oxford shirt and black trousers against a dark concrete wall",
-    "focal": "50% 40%"
+    "alt": "Man in a white oxford shirt and dark trousers standing in a dark wooden doorway",
+    "focal": "55% 40%"
   },
   "ervay-oxford-c2": {
     "alt": "Man in a light blue oxford button-down shirt with rolled sleeves in a studio",
@@ -137,36 +137,36 @@ export const productImageMeta: Record<string, { alt: string; focal: string }> = 
     "focal": "50% 40%"
   },
   "commerce-camp-shirt-2": {
-    "alt": "Man in a black short-sleeve camp-collar shirt in front of green foliage",
-    "focal": "50% 40%"
+    "alt": "Man in a black short-sleeve shirt and glasses in a green field under trees",
+    "focal": "50% 35%"
   },
   "commerce-camp-shirt-c2": {
     "alt": "Navy short-sleeve linen shirt hanging from a branch against a beige wall",
     "focal": "50% 40%"
   },
   "akard-overshirt-1": {
-    "alt": "Man in an ecru cotton twill overshirt and beanie against grey",
-    "focal": "50% 40%"
+    "alt": "Grey-bearded man in an ecru cotton overshirt over a white tee and a sage beanie",
+    "focal": "50% 35%"
   },
   "akard-overshirt-2": {
-    "alt": "Close detail of an ecru twill overshirt with chest pockets over a tee",
+    "alt": "Close detail of an ecru cotton overshirt worn open over a white tee",
     "focal": "50% 40%"
   },
   "akard-overshirt-c2": {
-    "alt": "Man in a green twill overshirt and cream trousers seated on a white chair",
+    "alt": "Man in an olive twill overshirt and cream trousers seated on a chair by a white wall",
     "focal": "50% 40%"
   },
   "field-merino-crew-1": {
-    "alt": "Man in a cream fine-knit crewneck sweater against a light studio backdrop",
-    "focal": "50% 40%"
+    "alt": "Man in a cream fine-knit crewneck sweater writing at a table, pale studio",
+    "focal": "50% 35%"
   },
   "field-merino-crew-2": {
     "alt": "Monochrome portrait of a man in a soft knit crewneck sweater",
     "focal": "50% 40%"
   },
   "field-merino-crew-c2": {
-    "alt": "Man in a black fine-knit crewneck and black trousers on white",
-    "focal": "50% 40%"
+    "alt": "Man in a fitted black fine-knit crewneck against a pale grey wall",
+    "focal": "50% 35%"
   },
   "hollow-cardigan-1": {
     "alt": "Man in an open camel knit cardigan over a navy tee against a white wall",
@@ -177,16 +177,16 @@ export const productImageMeta: Record<string, { alt: string; focal: string }> = 
     "focal": "50% 40%"
   },
   "hollow-cardigan-c2": {
-    "alt": "Close portrait of a man wearing a textured charcoal knit cardigan",
-    "focal": "50% 40%"
+    "alt": "Close portrait of a man in a textured charcoal shawl-collar knit cardigan against black",
+    "focal": "50% 35%"
   },
   "fisherman-knit-1": {
     "alt": "Man in a cream cable-knit fisherman sweater against a pale backdrop",
     "focal": "50% 40%"
   },
   "fisherman-knit-2": {
-    "alt": "Man in a cream cable-knit sweater posing beside a pale wall",
-    "focal": "50% 40%"
+    "alt": "Smiling man in glasses wearing an oatmeal cable-knit fisherman sweater against white",
+    "focal": "50% 35%"
   },
   "fisherman-knit-c2": {
     "alt": "Bearded man in a rust cable-knit fisherman sweater outdoors",
@@ -209,8 +209,8 @@ export const productImageMeta: Record<string, { alt: string; focal: string }> = 
     "focal": "50% 40%"
   },
   "selvedge-straight-jean-2": {
-    "alt": "Man in straight blue jeans and a chambray shirt seated on a stool",
-    "focal": "50% 40%"
+    "alt": "Man in straight mid-blue jeans and a light-blue denim shirt over a white tee, kneeling on a white plinth",
+    "focal": "50% 45%"
   },
   "drill-work-trouser-1": {
     "alt": "Man in olive-brown cotton work trousers and a white tank in profile",
@@ -221,28 +221,28 @@ export const productImageMeta: Record<string, { alt: string; focal: string }> = 
     "focal": "50% 40%"
   },
   "chore-jacket-1": {
-    "alt": "Man in a black canvas chore jacket over a white tee in warm light",
-    "focal": "50% 40%"
+    "alt": "Man in a black cotton work jacket over a white tee in low warm light",
+    "focal": "50% 35%"
   },
   "chore-jacket-2": {
-    "alt": "Man in a khaki canvas chore jacket and cap among green plants",
-    "focal": "50% 40%"
+    "alt": "Man in a tan cotton chore jacket among flowering plants in a greenhouse",
+    "focal": "50% 35%"
   },
   "chore-jacket-c2": {
-    "alt": "Man in an olive work jacket over a grey tee against a teal wall",
-    "focal": "50% 40%"
+    "alt": "Bearded man in an olive cotton work jacket over a grey knit, muted city street behind",
+    "focal": "50% 35%"
   },
   "suede-trucker-1": {
-    "alt": "Man in an olive suede shirt-jacket over a white tee on white",
-    "focal": "50% 40%"
+    "alt": "Man in an olive soft shirt-jacket over a pale grey tee against a light grey wall",
+    "focal": "50% 35%"
   },
   "suede-trucker-2": {
     "alt": "Man in a cognac suede trucker jacket seated with a coffee cup",
     "focal": "50% 40%"
   },
   "mac-coat-1": {
-    "alt": "Man in a stone cotton mac coat over a black tee on a white backdrop",
-    "focal": "50% 40%"
+    "alt": "Man in a camel single-breasted overcoat and brown roll-neck against a warm beige wall",
+    "focal": "50% 30%"
   },
   "mac-coat-2": {
     "alt": "Back view of a person in a long stone raincoat holding an umbrella by the sea",
@@ -257,8 +257,8 @@ export const productImageMeta: Record<string, { alt: string; focal: string }> = 
     "focal": "50% 40%"
   },
   "market-canvas-tote-1": {
-    "alt": "Man in black holding a natural canvas tote against a beige backdrop",
-    "focal": "50% 40%"
+    "alt": "Woman carrying a natural canvas tote filled with baby's breath over her shoulder against a beige backdrop",
+    "focal": "50% 45%"
   },
   "market-canvas-tote-2": {
     "alt": "Natural cotton canvas tote bag laid flat on a grey surface",
@@ -345,8 +345,8 @@ export const productImageMeta: Record<string, { alt: string; focal: string }> = 
     "focal": "50% 40%"
   },
   "bucket-hat-2": {
-    "alt": "Three people seen from behind wearing pastel bucket hats and white tees",
-    "focal": "50% 40%"
+    "alt": "Model in a grey cotton bucket hat and white tee against a pale wall",
+    "focal": "50% 35%"
   },
   "bucket-hat-c2": {
     "alt": "Person in a tan cotton bucket hat and white long-sleeve tee on black",
@@ -357,7 +357,7 @@ export const productImageMeta: Record<string, { alt: string; focal: string }> = 
     "focal": "50% 40%"
   },
   "rib-beanie-2": {
-    "alt": "Man in an ecru ribbed beanie and fleece seated outdoors at sunset",
-    "focal": "50% 40%"
+    "alt": "Smiling man in an oatmeal ribbed beanie, grey roll-neck and flannel shirt outdoors in warm evening light",
+    "focal": "40% 35%"
   }
 };

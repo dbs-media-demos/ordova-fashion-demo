@@ -10,7 +10,9 @@ import { useClothScene } from "@/lib/use-cloth-scene";
 import type { ClothScene } from "@/components/fx/cloth/ClothScene";
 import { IconArrow, IconPhone } from "@/components/ui/Icons";
 import { Stars } from "@/components/ui/Stars";
-import { site } from "@/lib/site";
+import { useBiz } from "@/components/preview/BizContext";
+import { telOf } from "@/lib/biz-core";
+import { heroName } from "@/lib/hero-name";
 
 /** Counter (inner) radius of the ring as a fraction of its box: r 38.5 − stroke 21/2 = 28 of 100. */
 const COUNTER = 0.28;
@@ -32,6 +34,12 @@ const PHONE_WEBP = set(`${STILL}-phone`, [750, 1000], "webp");
  * scene (and zero bytes of three.js), stacked: photo, name, rating, Shop and Call.
  */
 export function Hero() {
+  const biz = useBiz();
+  const pf = biz.preview ? false : undefined;
+  // A preview: the business's name in the wordmark's place, its town and the season without Texas
+  const name = biz.preview ? heroName(biz.shortName) : null;
+  const place = biz.preview ? [biz.area, biz.address.region].filter(Boolean).join(", ") : "Bishop Arts, Dallas · Est. 2019";
+  const named = biz.preview ? "Named for pale earth" : "Named for the pale Texas earth";
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -145,17 +153,17 @@ export function Hero() {
     return () => ro.disconnect();
   }, root);
 
-  const rating = (
+  const rating = biz.rating && (
     <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-bone/90">
-      <Stars value={site.rating.value} size={13} className="text-[#e9c46a]" />
+      <Stars value={biz.rating.value} size={13} className="text-[#e9c46a]" />
       <span>
-        <strong className="font-semibold text-bone">{site.rating.value}</strong> · {site.rating.count} Google reviews
+        <strong className="font-semibold text-bone">{biz.rating.value}</strong> · {biz.rating.count} Google reviews
       </span>
     </p>
   );
 
   return (
-    <section ref={root} className="theme-char relative pt-[var(--header-h)] lg:pt-0 deskl:motion-safe:h-[250svh]" aria-labelledby="hero-title">
+    <section ref={root} data-hero className="theme-char relative pt-[var(--header-h)] lg:pt-0 deskl:motion-safe:h-[250svh]" aria-labelledby="hero-title">
       <div ref={stage} className="relative lg:sticky lg:top-0 lg:h-[100svh] lg:overflow-hidden">
         {/* Layer 1 — the cloth: a still from the scene (the LCP image), the live canvas fades in over it on desktop */}
         <div className="relative h-[min(50svh,112vw)] overflow-hidden lg:absolute lg:inset-0 lg:h-auto">
@@ -183,7 +191,7 @@ export function Hero() {
 
           <div className="absolute inset-x-0 top-0 bg-[linear-gradient(180deg,rgb(21_21_19/0.7),transparent)] px-4 pb-10 pt-4 text-bone lg:hidden">
             <p className="t-mono text-[0.68rem]">FW26 · Drop 02 — &ldquo;Caliche&rdquo; is in the shop</p>
-            <p className="mt-1 max-w-[34ch] text-[0.8rem] leading-snug text-bone/85">Named for the pale Texas earth: chalk, clay and dry-grass tones in linen, wool and raw denim.</p>
+            <p className="mt-1 max-w-[34ch] text-[0.8rem] leading-snug text-bone/85">{named}: chalk, clay and dry-grass tones in linen, wool and raw denim.</p>
           </div>
 
           {/* Layer 2 — the window into FW26, clipped to the O's counter (desktop) */}
@@ -197,13 +205,31 @@ export function Hero() {
           {/* Layer 3 — the oversized wordmark */}
           <div className="pointer-events-none absolute inset-x-0 bottom-3 z-[3] lg:bottom-auto lg:top-1/2 lg:-translate-y-1/2">
             <div ref={word} className="flex justify-center will-change-transform">
-              <h1 id="hero-title" className="flex items-center font-display text-[14.2vw] font-extrabold uppercase leading-[0.8] tracking-[-0.045em] text-bone">
-                <span ref={ring} className="block">
-                  <Ring className="h-[0.74em] w-[0.74em]" />
-                </span>
-                <span aria-hidden="true">rdova</span>
-                <span className="sr-only">Ordova — concept store and small-batch label, Bishop Arts, Dallas</span>
-              </h1>
+              {name ? (
+                <h1
+                  id="hero-title"
+                  className="flex items-center whitespace-pre font-display font-extrabold uppercase leading-[0.8] tracking-[-0.045em] text-bone"
+                  style={{ fontSize: name.fit(14.2, 90) }}
+                >
+                  <span aria-hidden="true">{name.before}</span>
+                  <span ref={ring} className={clsx("block", name.ringFirst && "mr-[0.3em]")}>
+                    <Ring className="h-[0.74em] w-[0.74em]" />
+                  </span>
+                  <span aria-hidden="true">{name.after}</span>
+                  <span className="sr-only">
+                    {biz.name}
+                    {biz.area ? ` — clothing boutique, ${biz.area}` : ""}
+                  </span>
+                </h1>
+              ) : (
+                <h1 id="hero-title" className="flex items-center font-display text-[14.2vw] font-extrabold uppercase leading-[0.8] tracking-[-0.045em] text-bone">
+                  <span ref={ring} className="block">
+                    <Ring className="h-[0.74em] w-[0.74em]" />
+                  </span>
+                  <span aria-hidden="true">rdova</span>
+                  <span className="sr-only">Ordova — concept store and small-batch label, Bishop Arts, Dallas</span>
+                </h1>
+              )}
             </div>
           </div>
         </div>
@@ -213,11 +239,13 @@ export function Hero() {
           <div className="hidden items-start justify-between gap-6 lg:flex">
             <p className="t-mono max-w-[22ch] text-bone/90">FW26 · Drop 02 — &ldquo;Caliche&rdquo; is in the shop</p>
             <div className="flex flex-col items-end gap-2 text-right">
-              <p className="t-mono text-bone/90">Bishop Arts, Dallas · Est. 2019</p>
+              {place && <p className="t-mono text-bone/90">{place}</p>}
               {rating}
-              <a href={site.phoneHref} className="t-mono link-u text-bone">
-                {site.phone}
-              </a>
+              {biz.phone && (
+                <a href={telOf(biz)} className="t-mono link-u text-bone">
+                  {biz.phoneDisplay}
+                </a>
+              )}
             </div>
           </div>
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -226,15 +254,17 @@ export function Hero() {
                 Fewer, better clothes — cut and sewn a mile from the shop, in runs of thirty.
               </p>
               <div className="mt-3 lg:hidden">{rating}</div>
-              <p className="t-mono mt-1 text-[0.68rem] text-bone/70 lg:hidden">Bishop Arts, Dallas · Est. 2019</p>
+              {place && <p className="t-mono mt-1 text-[0.68rem] text-bone/70 lg:hidden">{place}</p>}
               <div className="mt-5 grid grid-cols-2 gap-2 lg:flex lg:flex-wrap">
-                <Link href="/collections/new-in" className="btn btn-light max-lg:min-h-[2.75rem] max-lg:px-3 max-lg:text-[0.68rem]">
+                <Link href="/collections/new-in" prefetch={pf} className="btn btn-light max-lg:min-h-[2.75rem] max-lg:px-3 max-lg:text-[0.68rem]">
                   Shop new in <IconArrow size={16} />
                 </Link>
-                <a href={site.phoneHref} className="btn btn-ghost btn-sm px-3 tracking-[0.04em] text-bone lg:hidden" aria-label={`Call the shop, ${site.phone}`}>
-                  <IconPhone size={15} /> {site.phone}
-                </a>
-                <Link href="/lookbook" className="btn btn-ghost hidden text-bone lg:inline-flex">
+                {biz.phone && (
+                  <a href={telOf(biz)} className="btn btn-ghost btn-sm px-3 tracking-[0.04em] text-bone lg:hidden" aria-label={`Call the shop, ${biz.phoneDisplay}`}>
+                    <IconPhone size={15} /> {biz.phoneDisplay}
+                  </a>
+                )}
+                <Link href="/lookbook" prefetch={pf} className="btn btn-ghost hidden text-bone lg:inline-flex">
                   The lookbook
                 </Link>
               </div>
@@ -242,7 +272,7 @@ export function Hero() {
             <p className="t-mono hidden text-right text-bone/85 lg:block">
               Move through the cloth
               <br />
-              Scroll — step through the O
+              Scroll — step through the {name && !name.hasO ? "ring" : "O"}
             </p>
           </div>
         </div>
@@ -262,8 +292,8 @@ export function Hero() {
             ))}
           </p>
           <div data-fin-fade className="pointer-events-auto mt-5 flex flex-wrap items-center gap-x-6 gap-y-3 opacity-0">
-            <p className="max-w-sm text-bone/90">Named for the pale Texas earth: chalk, clay and dry-grass tones in linen, wool and raw denim.</p>
-            <Link href="/collections/new-in" className="btn btn-light" tabIndex={-1}>
+            <p className="max-w-sm text-bone/90">{named}: chalk, clay and dry-grass tones in linen, wool and raw denim.</p>
+            <Link href="/collections/new-in" prefetch={pf} className="btn btn-light" tabIndex={-1}>
               Shop Caliche <IconArrow size={16} />
             </Link>
           </div>

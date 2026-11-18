@@ -18,7 +18,7 @@ export const metadata: Metadata = pageMeta({
 
 const TEAM = [
   ["Marisol Ordaz", "Founder · pattern cutter", "Trained in tailoring in Mexico City and London; cuts every first pattern by hand."],
-  ["Theo Lindqvist", "Co-founder · the shop", "Buys the brands we stock beside our own, and will hem your trousers while you wait."],
+  ["Thea Lindqvist", "Co-founder · the shop", "Buys the brands we stock beside our own, and will hem your trousers while you wait."],
   ["Ana Reyes", "Head seamstress", "Twenty-two years on industrial machines. Her initials are on more care tags than anyone's."],
   ["Jonah Bell", "Knitwear & finishing", "Works with our knitter in LA and presses every piece before it leaves."],
 ];
@@ -50,7 +50,7 @@ export default function AboutPage() {
           />
         </div>
         <Parallax className="aspect-[4/5] rounded-[2px] md:col-span-4 md:col-start-9" amount={10}>
-          <Image src="/images/ed/founders.jpg" alt="The two founders working together in the shop" fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover" />
+          <Image src="/images/ed/founders.jpg" alt="The two founders working over paper patterns at the cutting table" fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover" />
         </Parallax>
       </section>
       <Timeline label="Fifty years, one block apart" items={MOMENTS} />

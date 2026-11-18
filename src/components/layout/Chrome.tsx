@@ -6,6 +6,8 @@ import clsx from "clsx";
 import { gsap, ScrollTrigger, loadGsap, onIdle, prefersReducedMotion, isCoarse, isPhone } from "@/lib/gsap";
 import { agencyUrl } from "@/lib/site";
 import { openStatus } from "@/lib/hours";
+import { openStatus as bizOpenStatus } from "@/lib/biz-core";
+import { useBiz } from "@/components/preview/BizContext";
 import { useUi } from "@/lib/store";
 
 /**
@@ -204,27 +206,35 @@ export function DemoBadge() {
 }
 
 /**
- * Live "Open now · until 8 pm" pill (Dallas time). Client-only to avoid hydration drift, and
+ * Live "Open now · until 8 pm" pill (Dallas time; a preview's in the business's own timezone). Client-only to avoid hydration drift, and
  * worked out once the browser is idle (no time-zone formatting during hydration).
  */
 export function OpenBadge({ className, dark }: { className?: string; dark?: boolean }) {
-  const [s, setS] = useState<ReturnType<typeof openStatus> | null>(null);
+  const biz = useBiz();
+  const [s, setS] = useState<{ open: boolean; label: string } | null>(null);
   useEffect(() => {
-    const update = () => setS(openStatus());
+    // A preview: the business's own hours in its own timezone (the concept store keeps its Dallas lines)
+    const update = () => {
+      if (!biz.preview) return setS(openStatus());
+      const b = bizOpenStatus(biz);
+      setS(b ? { open: b.open, label: b.text } : null);
+    };
     const cancel = onIdle(update, 2000);
     const id = window.setInterval(update, 60_000);
     return () => {
       cancel();
       window.clearInterval(id);
     };
-  }, []);
+  }, [biz]);
+  // A preview without known hours shows no badge
+  if (biz.preview && !biz.hours) return null;
   return (
     <span className={clsx("t-mono inline-flex items-center gap-2 rounded-full border px-3 py-1.5", dark ? "border-line-lt" : "border-line", className)}>
       <span
         className={clsx("h-2 w-2 rounded-full", s?.open ? "bg-[#3f9b52]" : "bg-stone")}
         style={s?.open ? { animation: "pulse-dot 2s infinite" } : undefined}
       />
-      <span className="min-w-[13ch]">{s ? s.label : "Hours · Bishop Arts"}</span>
+      <span className="min-w-[13ch]">{s ? s.label : `Hours · ${biz.preview ? biz.area || "today" : "Bishop Arts"}`}</span>
     </span>
   );
 }

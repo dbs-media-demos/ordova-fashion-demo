@@ -4,6 +4,7 @@ import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { looks } from "@/content/lookbook";
+import { useBiz } from "@/components/preview/BizContext";
 import { gsap, useIdleGSAP, prefersReducedMotion, ScrollTrigger } from "@/lib/gsap";
 import { IconArrow } from "@/components/ui/Icons";
 import { cv } from "@/lib/cv";
@@ -25,6 +26,8 @@ const SPREAD = [
  * "shop the look" hotspot.
  */
 export function LookbookDeck() {
+  // A preview: the concept store's Dallas locations give way to the season
+  const preview = useBiz().preview;
   const root = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
 
@@ -64,7 +67,7 @@ export function LookbookDeck() {
       <div ref={stage} className="grain relative h-[100svh] overflow-hidden desk:sticky desk:top-0">
         <div className="container-x absolute inset-x-0 top-0 z-[60] flex items-start justify-between pt-[calc(var(--header-h)+1.5rem)]">
           <p className="t-mono text-muted">( 08 ) FW26 Lookbook</p>
-          <p className="t-mono hidden text-muted md:block">8 looks · shot around Dallas</p>
+          <p className="t-mono hidden text-muted md:block">{preview ? "8 looks · FW26 Caliche" : "8 looks · shot around Dallas"}</p>
         </div>
         <div data-title className="pointer-events-none absolute inset-0 z-[40] grid place-items-center">
           <h2 id="deck-title" className="text-center font-display text-[clamp(2.2rem,9.6vw,10rem)] font-extrabold uppercase leading-[0.8] tracking-[-0.045em] text-char/90">
@@ -85,7 +88,7 @@ export function LookbookDeck() {
             </span>
             <span className="t-mono absolute inset-x-3 bottom-3 flex justify-between text-[0.58rem] text-muted">
               <span>Look {l.n}</span>
-              <span>{l.place}</span>
+              <span>{preview ? "FW26" : l.place}</span>
             </span>
           </div>
         ))}
@@ -102,11 +105,12 @@ export function LookbookDeck() {
 
 /** Phones and touch tablets: the prints as a swipe rail, slightly askew like on the table. */
 function PhoneDeck() {
+  const preview = useBiz().preview;
   return (
     <section {...cv("deck")} className="grain hidden bg-sand py-16 ph:block" aria-labelledby="deck-title-ph">
       <div className="container-x flex items-start justify-between gap-4">
         <p className="t-mono text-muted">( 08 ) FW26 Lookbook</p>
-        <p className="t-mono text-muted">8 looks · shot around Dallas</p>
+        <p className="t-mono text-muted">{preview ? "8 looks · FW26 Caliche" : "8 looks · shot around Dallas"}</p>
       </div>
       <h2 id="deck-title-ph" className="container-x mt-4 font-display text-[3rem] font-extrabold uppercase leading-[0.82] tracking-[-0.045em] text-char/90">
         Shop
@@ -121,7 +125,7 @@ function PhoneDeck() {
             </span>
             <span className="t-mono mt-3 flex justify-between px-1 text-[0.58rem] text-muted">
               <span>Look {l.n}</span>
-              <span>{l.place}</span>
+              <span>{preview ? "FW26" : l.place}</span>
             </span>
           </li>
         ))}

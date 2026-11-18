@@ -36,7 +36,7 @@ export const posts: Post[] = [
     title: "Dressing for Texas light",
     dek: "Why our FW26 palette looks like the ground under your feet — and what the sun at 6 pm on Davis Street taught us about colour.",
     date: "2026-09-02",
-    author: "Theo Lindqvist",
+    author: "Thea Lindqvist",
     read: "4 min read",
     image: "/images/ed/journal-2.jpg",
     imageAlt: "Dallas in warm late-afternoon light",

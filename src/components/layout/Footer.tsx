@@ -5,6 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { Ring } from "@/components/brand/Logo";
+import { LeadLogo } from "@/components/brand/LeadLogo";
+import { useBiz } from "@/components/preview/BizContext";
+import { areasFor, listOf, telOf } from "@/lib/biz-core";
+import { nameEm } from "@/lib/hero-name";
 import { OpenBadge } from "./Chrome";
 import { nav, site, agencyUrl } from "@/lib/site";
 import { hoursTable } from "@/lib/hours";
@@ -13,6 +17,8 @@ import { IconArrow, IconCheck, IconInstagram } from "@/components/ui/Icons";
 import { cv } from "@/lib/cv";
 
 export function Footer() {
+  const biz = useBiz();
+  const pf = biz.preview ? false : undefined;
   const word = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const calm = pathname.startsWith("/checkout");
@@ -33,7 +39,7 @@ export function Footer() {
     return (
       <footer className="border-t border-line py-8">
         <div className="container-x t-mono flex flex-wrap justify-between gap-4 text-muted">
-          <span>© {new Date().getFullYear()} Ordova Studio · Demo store, no payments taken</span>
+          <span>© {new Date().getFullYear()} {biz.preview ? biz.name : "Ordova Studio"} · Demo store, no payments taken</span>
           <a href={agencyUrl} target="_blank" rel="noopener" className="link-u">
             Design & development: Scale by Noon
           </a>
@@ -43,7 +49,7 @@ export function Footer() {
   }
 
   return (
-    <footer {...cv("footer")} className="theme-char relative overflow-hidden pt-20 md:pt-28">
+    <footer {...cv("footer", biz)} className="theme-char relative overflow-hidden pt-20 md:pt-28">
       <div className="container-x grid gap-14 md:grid-cols-12">
         <div className="md:col-span-5">
           <p className="t-mono text-mist">The letter</p>
@@ -51,7 +57,7 @@ export function Footer() {
           <Newsletter />
           <div className="mt-10 flex flex-wrap items-center gap-3">
             <OpenBadge dark />
-            <a href={site.instagram} target="_blank" rel="noopener" className="icon-btn border border-line-lt" aria-label="Ordova on Instagram">
+            <a href={site.instagram} target="_blank" rel="noopener" className="icon-btn border border-line-lt" aria-label={`${biz.name} on Instagram`}>
               <IconInstagram />
             </a>
           </div>
@@ -59,11 +65,11 @@ export function Footer() {
         <nav aria-label="Footer" className="grid grid-cols-2 gap-10 sm:grid-cols-3 md:col-span-7">
           {nav.footer.map((col) => (
             <div key={col.title}>
-              <p className="t-mono text-mist">{col.title}</p>
+              <p className="t-mono text-mist">{col.title === "Ordova" && biz.preview ? biz.shortName : col.title}</p>
               <ul className="mt-4 space-y-2.5">
                 {col.links.map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="link-u text-[0.95rem]">
+                    <Link href={l.href} prefetch={pf} className="link-u text-[0.95rem]">
                       {l.label}
                     </Link>
                   </li>
@@ -75,20 +81,47 @@ export function Footer() {
             <p className="t-mono text-mist">The shop</p>
             <div className="mt-4 grid gap-6 text-[0.95rem] sm:grid-cols-2">
               <address className="not-italic leading-relaxed">
-                {site.address.street}
-                <br />
-                Bishop Arts District, Dallas, TX {site.address.postal}
-                <br />
-                <a href={site.phoneHref} className="link-line">
-                  {site.phone}
-                </a>{" "}
-                ·{" "}
-                <a href={`mailto:${site.email}`} className="link-line">
-                  {site.email}
-                </a>
+                {biz.preview ? (
+                  <>
+                    {biz.address.street && (
+                      <>
+                        {biz.address.street}
+                        <br />
+                      </>
+                    )}
+                    {[biz.address.city || biz.area, [biz.address.region, biz.address.postal].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+                    {biz.phone && (
+                      <>
+                        <br />
+                        <a href={telOf(biz)} className="link-line">
+                          {biz.phoneDisplay}
+                        </a>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {site.address.street}
+                    <br />
+                    Bishop Arts District, Dallas, TX {site.address.postal}
+                    <br />
+                    <a href={site.phoneHref} className="link-line">
+                      {site.phone}
+                    </a>{" "}
+                    ·{" "}
+                    <a href={`mailto:${site.email}`} className="link-line">
+                      {site.email}
+                    </a>
+                  </>
+                )}
+                {areasFor(biz).length > 0 && (
+                  <span className="mt-3 block text-mist">
+                    Same-day courier: <span className="text-bone/85">{listOf(biz, areasFor(biz))}</span>
+                  </span>
+                )}
               </address>
               <ul className="space-y-0.5 text-mist">
-                {hoursTable().map((h) => (
+                {hoursTable(biz).map((h) => (
                   <li key={h.day} className="flex justify-between gap-4">
                     <span>{h.short}</span>
                     <span className="text-bone/85">{h.text}</span>
@@ -100,21 +133,43 @@ export function Footer() {
         </nav>
       </div>
 
-      <div ref={word} className="mt-20 select-none overflow-hidden px-[2vw] md:mt-28" aria-hidden="true">
-        <div className="flex items-end justify-between font-display font-extrabold uppercase leading-[0.78] tracking-[-0.04em] text-[14.6vw]">
-          <span data-l className="inline-block">
-            <Ring className="h-[0.72em] w-[0.72em] text-cobalt" />
-          </span>
-          {"RDOVA".split("").map((c, i) => (
-            <span key={i} data-l className="inline-block">
-              {c}
-            </span>
-          ))}
+      {biz.logo ? (
+        // A preview with the business's own logo: theirs, big, in the footer's ink
+        <div className="container-x mt-20 md:mt-28" aria-hidden="true">
+          <LeadLogo svg={biz.logo.svg} className="h-[clamp(64px,11vw,170px)] max-w-full text-bone ph:h-[clamp(44px,13vw,72px)]" />
         </div>
-      </div>
+      ) : (
+        <div ref={word} className="mt-20 select-none overflow-hidden px-[2vw] md:mt-28" aria-hidden="true">
+          {biz.preview ? (
+            // Their name, letter by letter like our wordmark, sized to fit one line
+            <div
+              className="flex items-end justify-between whitespace-pre font-display font-extrabold uppercase leading-[0.78] tracking-[-0.04em]"
+              style={{ fontSize: `min(14.6vw, ${(94 / Math.max(6.5, nameEm(biz.shortName))).toFixed(2)}vw)` }}
+            >
+              {biz.shortName.split("").map((c, i) => (
+                <span key={i} data-l className="inline-block">
+                  {c}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <div className="flex items-end justify-between font-display font-extrabold uppercase leading-[0.78] tracking-[-0.04em] text-[14.6vw]">
+              <span data-l className="inline-block">
+                <Ring className="h-[0.72em] w-[0.72em] text-cobalt" />
+              </span>
+              {"RDOVA".split("").map((c, i) => (
+                <span key={i} data-l className="inline-block">
+                  {c}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
-      <div className="container-x t-mono flex flex-wrap items-center justify-between gap-4 border-t border-line-lt py-6 text-mist">
-        <span>© {new Date().getFullYear()} {site.legalName}. A fictional store.</span>
+      {/* The bottom padding keeps the credit clear of the fixed "Concept site" badge (and the phone bar under it) */}
+      <div className="container-x t-mono flex flex-wrap items-center justify-between gap-4 border-t border-line-lt py-6 text-mist max-md:pb-[9.5rem] md:pb-20">
+        <span>{biz.preview ? `© ${new Date().getFullYear()} ${biz.name}. A concept site made for ${biz.shortName}.` : `© ${new Date().getFullYear()} ${site.legalName}. A fictional store.`}</span>
         <a href={agencyUrl} target="_blank" rel="noopener" className="link-u text-bone">
           Design & development: Scale by Noon ↗
         </a>

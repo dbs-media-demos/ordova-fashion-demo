@@ -52,7 +52,7 @@ export default function StudioPage() {
           </Reveal>
         ))}
       </section>
-      <ZoomFrame img="/images/ed/studio-team.jpg" alt="The studio team at work at the cutting table" kicker="Visits" line="First Saturday of every month, the studio door is open" />
+      <ZoomFrame img="/images/ed/studio-team.jpg" alt="Two of the studio team at the worktable with fabric samples and sketches" kicker="Visits" line="First Saturday of every month, the studio door is open" />
       <section className="container-x py-24 md:py-32">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <h2 className="t-h2 max-w-[14ch]">Made in this room</h2>

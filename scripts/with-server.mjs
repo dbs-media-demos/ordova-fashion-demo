@@ -1,6 +1,6 @@
 // Runs one command against the production server, then stops the server (the command always finishes).
 //   npm run build && node scripts/with-server.mjs node scripts/hero-still.mjs
-// (This demo has no CRM preview route.)
+// A preview (/for/<token>) fetches its business from CRM_API_URL; NEXT_DIST_DIR and PORT pick another build and port.
 import { spawn, spawnSync } from "node:child_process";
 
 const [cmd, ...args] = process.argv.slice(2);

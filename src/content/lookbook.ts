@@ -54,11 +54,11 @@ export const looks: Look[] = [
     caption: "Poplin, a wide trouser and a trench with the belt left loose.",
     place: "Arts District",
     image: "/images/ed/lookbook-04.jpg",
-    alt: "Woman in an oversized taupe coat and wide trousers outside a glass building",
+    alt: "Woman in an oversized camel trench over a white shirt and wide black trousers against a dark modern facade",
     hotspots: [
-      { slug: "lone-star-trench", x: 60, y: 40 },
-      { slug: "bishop-poplin-shirt", x: 55, y: 22 },
-      { slug: "oak-cliff-wide-trouser", x: 52, y: 75 },
+      { slug: "lone-star-trench", x: 42, y: 52 },
+      { slug: "bishop-poplin-shirt", x: 54, y: 22 },
+      { slug: "oak-cliff-wide-trouser", x: 51, y: 80 },
     ],
   },
   {
@@ -108,10 +108,10 @@ export const looks: Look[] = [
     caption: "The mac again, with a white tee — the easiest uniform we know.",
     place: "Kessler Park",
     image: "/images/ed/lookbook-08.jpg",
-    alt: "Man in a long stone trench coat and white tee reading a newspaper outdoors",
+    alt: "Man in a long stone trench coat over a white tee walking down a tree-lined street",
     hotspots: [
-      { slug: "mac-coat", x: 30, y: 60 },
-      { slug: "lamar-boxy-tee", x: 46, y: 40 },
+      { slug: "mac-coat", x: 37, y: 55 },
+      { slug: "lamar-boxy-tee", x: 48, y: 26 },
     ],
   },
 ];

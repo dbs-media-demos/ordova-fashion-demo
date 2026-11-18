@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import type { Biz } from "./biz-core";
 
 /**
  * Phones: the height a [data-cv] section really has, held by content-visibility until it nears the
@@ -17,12 +18,36 @@ const H = {
   visit: ["850px", "892px", "895px"],
   worn: ["calc(1556px - 70.4vw)", "calc(1556px - 70.4vw)", "calc(1556px - 70.4vw)"],
   fabric: ["1231px", "calc(580px + 190vw)", "calc(580px + 190vw)"],
-  footer: ["1439px", "calc(1320px + 11.4vw)", "calc(1320px + 11.4vw)"],
+  footer: ["1612px", "calc(1509px + 11.4vw)", "calc(1509px + 11.4vw)"],
 } as const;
+
+/**
+ * A personalised preview's footer, visit and reviews heights follow what the lead has (hours, phone,
+ * street, towns, logo, rating): a base without any of them plus each block's measured height (phones,
+ * 320 / 375 px, fitted on two leads within ~1%; a lead's longer lines move them a little).
+ */
+type Lead = Pick<Biz, "preview" | "hours" | "phone" | "address" | "areas" | "area" | "logo" | "rating">;
+function previewHeights(id: CvId, b: Lead): readonly [string, string, string] | null {
+  const couriers = b.areas.filter((a) => a !== b.area).length > 0;
+  if (id === "footer") {
+    // the courier line: two lines for a list of towns, one for their own town alone
+    const towns = b.areas.length > 1 ? 48 : b.areas.length || b.area ? 24 : 0;
+    const px = towns + (b.hours ? 175 : 0) + (b.phone ? 24 : 0) + (b.address.street ? 24 : 0) + (b.logo ? 11 : 0);
+    const vw = 5.7 + (b.logo ? 7.3 : 0);
+    return [`calc(${1276 + px}px + ${vw}vw)`, `calc(${1250 + px}px + ${vw}vw)`, `calc(${1250 + px}px + ${vw}vw)`];
+  }
+  if (id === "visit") {
+    // the courier sentence wraps one line fewer from 390 px up
+    const badge = b.hours ? 15 : 0;
+    return [`${754 + (couriers ? 48 : 0) + badge}px`, `calc(${418 + (couriers ? 48 : 0) + badge}px + 88vw)`, `calc(${418 + (couriers ? 24 : 0) + badge}px + 88vw)`];
+  }
+  if (id === "worn" && !b.rating) return ["calc(1464px - 70.4vw)", "calc(1464px - 70.4vw)", "calc(1464px - 70.4vw)"];
+  return null;
+}
 
 export type CvId = keyof typeof H;
 
-export const cv = (id: CvId) => {
-  const [s, m, l] = H[id];
+export const cv = (id: CvId, biz?: Lead) => {
+  const [s, m, l] = (biz?.preview && previewHeights(id, biz)) || H[id];
   return { "data-cv": id, style: { "--cv-s": s, "--cv": m, "--cv-l": l } as CSSProperties };
 };

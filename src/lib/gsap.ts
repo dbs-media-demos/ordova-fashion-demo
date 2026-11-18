@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { onIdle as idleCall } from "./idle";
 
 /** Phones and tablets: below 768 px or a touch screen. Same test as the phone block in globals.css. */
 export const PHONE_QUERY = "(max-width: 767px), (pointer: coarse)";
@@ -35,13 +36,11 @@ export function withGsap(cb: () => void) {
   else void loadGsap().then(cb);
 }
 
-/** Run `cb` once the browser is idle (falls back to a short timeout). */
-export function onIdle(cb: () => void, timeout = 1200) {
-  const ric = window.requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 200));
-  const cancel = window.cancelIdleCallback ?? window.clearTimeout;
-  const id = ric(cb, { timeout });
-  return () => cancel(id as number);
-}
+/**
+ * Run `cb` once the browser is idle (falls back to a short timeout). The cancel always matches how it
+ * was started: a requestIdleCallback id handed to clearTimeout can cancel an unrelated timer.
+ */
+export const onIdle = (cb: () => void, timeout = 1200) => idleCall(cb, { timeout });
 
 if (typeof window !== "undefined") {
   if (!isPhone()) void loadGsap();

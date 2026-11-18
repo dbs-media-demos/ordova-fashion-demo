@@ -1,11 +1,14 @@
 import { Counter, Marquee, ScrubWords } from "@/components/ui/Reveal";
 import { Ring } from "@/components/brand/Logo";
 import { cv } from "@/lib/cv";
+import { defaultBiz, type Biz } from "@/lib/biz";
 
-const PROMISES = ["Free shipping over $150", "Free 30-day returns", "Pickup in Bishop Arts in 2 hours", "Free hemming in store", "Gift wrap on the house"];
+const promises = (where: string) => ["Free shipping over $150", "Free 30-day returns", `Pickup in ${where} in 2 hours`, "Free hemming in store", "Gift wrap on the house"];
 
 /** Scene 2 — the manifesto: words light up as you read, then four honest numbers. */
-export function Manifesto() {
+export function Manifesto({ biz = defaultBiz }: { biz?: Biz }) {
+  // A preview names the business's own town instead of Bishop Arts
+  const PROMISES = promises(biz.preview ? biz.area || "store" : "Bishop Arts");
   return (
     <section {...cv("manifesto")} className="theme-sand relative overflow-hidden" aria-labelledby="manifesto-title">
       <div className="border-b border-line py-4">
@@ -31,7 +34,7 @@ export function Manifesto() {
             {[
               { v: 6, s: "", l: "people in the studio, every one of them named on your care tag" },
               { v: 30, s: "", l: "pieces per run — then the pattern rests" },
-              { v: 1, s: " mi", l: "from our cutting table to the rail on Bishop Ave" },
+              { v: 1, s: " mi", l: biz.preview ? "from our cutting table to the rail in the shop" : "from our cutting table to the rail on Bishop Ave" },
               { v: 0, s: "", l: "logos. The cut is the signature." },
             ].map((x) => (
               <div key={x.l}>

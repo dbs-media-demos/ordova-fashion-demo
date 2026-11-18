@@ -1,5 +1,7 @@
 "use client";
 
+import { onIdle } from "./idle";
+
 /**
  * The only door to three.js. Nothing imports a 3D module statically: callers run `after3DGate`
  * in an effect, and the `import()` happens inside its callback, so phones, tablets, reduced
@@ -54,7 +56,7 @@ function loadBlocked() {
  */
 export function after3DGate(yes: () => void, no?: () => void) {
   let cancelled = false;
-  let idle = 0;
+  let cancelIdle = () => {};
   const run = () => {
     if (cancelled) return;
     if (!can3D()) return no?.();
@@ -65,16 +67,15 @@ export function after3DGate(yes: () => void, no?: () => void) {
     yes();
   };
   const onLoad = () => {
-    if (typeof window.requestIdleCallback === "function") idle = window.requestIdleCallback(run, { timeout: 600 });
-    else idle = window.setTimeout(run, 120);
+    cancelIdle = onIdle(run, { timeout: 600, fallbackMs: 120 });
   };
   if (document.readyState === "complete") onLoad();
   else window.addEventListener("load", onLoad, { once: true });
   return () => {
     cancelled = true;
     window.removeEventListener("load", onLoad);
-    if (typeof window.cancelIdleCallback === "function") window.cancelIdleCallback(idle);
-    window.clearTimeout(idle);
+    // the matching cancel: an idle id given to clearTimeout could cancel an unrelated timer
+    cancelIdle();
   };
 }
 
